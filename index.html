@@ -178,6 +178,63 @@
     }
 
     .reset-link:hover { color: #999; }
+
+    /* ---- Strength slider ---- */
+    .strength-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 18px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .strength-label {
+      font-size: 0.85rem;
+      color: #aaa;
+      white-space: nowrap;
+      min-width: 3.5em;
+    }
+
+    #strengthSlider {
+      flex: 1;
+      height: 4px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #3a3a3a;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    #strengthSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: #5b8fff;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    #strengthSlider::-webkit-slider-thumb:hover { background: #7aaaff; }
+
+    #strengthSlider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: #5b8fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .strength-value {
+      font-size: 0.85rem;
+      color: #ccc;
+      font-variant-numeric: tabular-nums;
+      min-width: 2.8em;
+      text-align: right;
+    }
   </style>
 </head>
 <body>
@@ -205,6 +262,11 @@
     <button class="btn btn-copy"     id="copyBtn">コピー</button>
     <button class="btn btn-download" id="dlBtn">ダウンロード</button>
   </div>
+  <div class="strength-control">
+    <span class="strength-label">湾曲率</span>
+    <input type="range" id="strengthSlider" min="0" max="2" step="0.01" value="1">
+    <span class="strength-value" id="strengthValue">1.00</span>
+  </div>
   <div class="copy-ok" id="copyOk">クリップボードにコピーしました</div>
   <div class="reset-link" id="resetLink">別の画像を使う</div>
 </div>
@@ -218,9 +280,13 @@
   const copyBtn    = document.getElementById('copyBtn');
   const dlBtn      = document.getElementById('dlBtn');
   const copyOk     = document.getElementById('copyOk');
-  const resetLink  = document.getElementById('resetLink');
+  const resetLink       = document.getElementById('resetLink');
+  const strengthSlider  = document.getElementById('strengthSlider');
+  const strengthValueEl = document.getElementById('strengthValue');
 
-  let currentName = 'image';
+  let currentName     = 'image';
+  let currentImg      = null;
+  let currentStrength = 1.0;
 
   // --- Input handlers ---
 
@@ -258,6 +324,13 @@
     preview.classList.remove('visible');
     dropZone.style.display = '';
     fileInput.value = '';
+    currentImg = null;
+  });
+
+  strengthSlider.addEventListener('input', () => {
+    currentStrength = parseFloat(strengthSlider.value);
+    strengthValueEl.textContent = currentStrength.toFixed(2);
+    if (currentImg) runFisheye(currentImg);
   });
 
   // --- File loading ---
@@ -267,7 +340,7 @@
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
-      img.onload = () => runFisheye(img);
+      img.onload = () => { currentImg = img; runFisheye(img); };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
@@ -313,10 +386,11 @@
             continue;
           }
 
-          // Barrel distortion / Outward sphere projection (inverse mapping):
-          //   r_src = asin(r) / (π/2)  →  r_src > r → centre bulges outward
-          //   src_xy = (nx/r * r_src, ny/r * r_src)  mapped from [-1,1] to image coords
-          const r_src = Math.asin(r) / (Math.PI / 2);
+          // Lerp between flat (no distortion) and sphere projection, scaled by strength:
+          //   r_src = r + strength × (asin(r)/(π/2) − r)
+          //   strength=0 → flat, strength=1 → sphere, strength=2 → stronger bulge
+          const r_sphere = Math.asin(r) / (Math.PI / 2);
+          const r_src = r + currentStrength * (r_sphere - r);
           let sx, sy;
           if (r < 1e-9) {
             sx = sy = 0.5;
