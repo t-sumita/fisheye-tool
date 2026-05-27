@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fisheye Tool</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #181818;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px 60px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 36px;
+    }
+
+    /* ---- Drop Zone ---- */
+    #dropZone {
+      width: 100%;
+      max-width: 520px;
+      border: 2px dashed #3a3a3a;
+      border-radius: 16px;
+      padding: 56px 32px;
+      text-align: center;
+      cursor: pointer;
+      background: #202020;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+
+    #dropZone.dragover,
+    #dropZone:hover {
+      border-color: #5b8fff;
+      background: #1c2235;
+    }
+
+    .dz-icon {
+      font-size: 2.8rem;
+      margin-bottom: 14px;
+      color: #555;
+    }
+
+    .dz-main {
+      font-size: 0.95rem;
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+
+    .dz-main span {
+      color: #5b8fff;
+      font-weight: 600;
+    }
+
+    .dz-hint {
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    #fileInput { display: none; }
+
+    /* ---- Preview Section ---- */
+    #previewSection {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 36px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    #previewSection.visible { display: flex; }
+
+    /* Checkerboard container — clips the canvas to a circle */
+    .canvas-wrap {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      overflow: hidden;
+      /* Checkerboard via repeating-conic-gradient (modern browsers) */
+      background:
+        repeating-conic-gradient(#2c2c2c 0% 25%, #1a1a1a 0% 50%)
+        0 0 / 20px 20px;
+      box-shadow: 0 0 0 1px #333, 0 8px 40px rgba(0,0,0,0.6);
+    }
+
+    #outputCanvas {
+      display: block;
+      width: 400px;
+      height: 400px;
+    }
+
+    /* Loading overlay */
+    .loading {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      border-radius: 50%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 0.88rem;
+      color: #ccc;
+    }
+
+    .loading.visible { display: flex; }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: #5b8fff;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Buttons ---- */
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      padding: 10px 26px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+    }
+
+    .btn:hover   { filter: brightness(1.15); }
+    .btn:active  { transform: scale(0.96); }
+
+    .btn-copy     { background: #2d2d2d; color: #ddd; }
+    .btn-download { background: #5b8fff; color: #fff; }
+
+    .copy-ok {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: #6ee06e;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .copy-ok.visible { opacity: 1; }
+
+    .reset-link {
+      margin-top: 20px;
+      font-size: 0.82rem;
+      color: #555;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .reset-link:hover { color: #999; }
+  </style>
+</head>
+<body>
+
+<h1>Fisheye Tool</h1>
+<p class="subtitle">円周魚眼レンズ変換ツール</p>
+
+<div id="dropZone">
+  <div class="dz-icon">&#128248;</div>
+  <p class="dz-main"><span>クリックして画像を選択</span>、またはここにドロップ</p>
+  <p class="dz-hint">JPG・PNG 対応 &nbsp;/&nbsp; Ctrl+V で貼り付けも可</p>
+  <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
+</div>
+
+<div id="previewSection">
+  <div class="canvas-wrap">
+    <canvas id="outputCanvas" width="1000" height="1000"></canvas>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      変換中…
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-copy"     id="copyBtn">コピー</button>
+    <button class="btn btn-download" id="dlBtn">ダウンロード</button>
+  </div>
+  <div class="copy-ok" id="copyOk">クリップボードにコピーしました</div>
+  <div class="reset-link" id="resetLink">別の画像を使う</div>
+</div>
+
+<script>
+  const dropZone   = document.getElementById('dropZone');
+  const fileInput  = document.getElementById('fileInput');
+  const preview    = document.getElementById('previewSection');
+  const canvas     = document.getElementById('outputCanvas');
+  const loading    = document.getElementById('loading');
+  const copyBtn    = document.getElementById('copyBtn');
+  const dlBtn      = document.getElementById('dlBtn');
+  const copyOk     = document.getElementById('copyOk');
+  const resetLink  = document.getElementById('resetLink');
+
+  let currentName = 'image';
+
+  // --- Input handlers ---
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (f) loadFile(f);
+  });
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if (f && /^image\/(jpeg|png)$/.test(f.type)) loadFile(f);
+  });
+
+  document.addEventListener('paste', e => {
+    for (const item of e.clipboardData.items) {
+      if (item.type.startsWith('image/')) {
+        loadFile(item.getAsFile());
+        break;
+      }
+    }
+  });
+
+  resetLink.addEventListener('click', () => {
+    preview.classList.remove('visible');
+    dropZone.style.display = '';
+    fileInput.value = '';
+  });
+
+  // --- File loading ---
+
+  function loadFile(file) {
+    currentName = file.name.replace(/\.[^.]+$/, '') || 'image';
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => runFisheye(img);
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // --- Spherical projection transform ---
+
+  function runFisheye(img) {
+    dropZone.style.display = 'none';
+    preview.classList.add('visible');
+    loading.classList.add('visible');
+
+    // Yield to browser so the UI paints before the heavy loop
+    requestAnimationFrame(() => setTimeout(() => {
+      const OUT = 1000;
+      const ctx = canvas.getContext('2d');
+
+      // Centre-crop source to square
+      const sq  = Math.min(img.width, img.height);
+      const ox  = (img.width  - sq) / 2;
+      const oy  = (img.height - sq) / 2;
+
+      const tmp = document.createElement('canvas');
+      tmp.width = tmp.height = sq;
+      tmp.getContext('2d').drawImage(img, ox, oy, sq, sq, 0, 0, sq, sq);
+      const src = tmp.getContext('2d').getImageData(0, 0, sq, sq);
+
+      // Output ImageData
+      const out = ctx.createImageData(OUT, OUT);
+      const od  = out.data;
+      const sd  = src.data;
+
+      for (let py = 0; py < OUT; py++) {
+        const ny = (py / (OUT - 1)) * 2 - 1;   // [-1, 1]
+        for (let px = 0; px < OUT; px++) {
+          const nx = (px / (OUT - 1)) * 2 - 1; // [-1, 1]
+          const r  = Math.sqrt(nx * nx + ny * ny);
+          const oi = (py * OUT + px) * 4;
+
+          // Outside circle → alpha = 0 (transparent, not included in canvas output)
+          if (r > 1) {
+            od[oi] = od[oi+1] = od[oi+2] = od[oi+3] = 0;
+            continue;
+          }
+
+          // Barrel distortion / Outward sphere projection (inverse mapping):
+          //   r_src = asin(r) / (π/2)  →  r_src > r → centre bulges outward
+          //   src_xy = (nx/r * r_src, ny/r * r_src)  mapped from [-1,1] to image coords
+          const r_src = Math.asin(r) / (Math.PI / 2);
+          let sx, sy;
+          if (r < 1e-9) {
+            sx = sy = 0.5;
+          } else {
+            sx = (nx / r * r_src + 1) * 0.5;
+            sy = (ny / r * r_src + 1) * 0.5;
+          }
+
+          // Bilinear interpolation
+          const fx = sx * sq;
+          const fy = sy * sq;
+          const x0 = Math.floor(fx);
+          const y0 = Math.floor(fy);
+          const x1 = Math.min(x0 + 1, sq - 1);
+          const y1 = Math.min(y0 + 1, sq - 1);
+          const tx = fx - x0;
+          const ty = fy - y0;
+          const cx0 = Math.max(0, Math.min(sq - 1, x0));
+          const cy0 = Math.max(0, Math.min(sq - 1, y0));
+          const cx1 = Math.max(0, Math.min(sq - 1, x1));
+          const cy1 = Math.max(0, Math.min(sq - 1, y1));
+
+          const i00 = (cy0 * sq + cx0) * 4;
+          const i10 = (cy0 * sq + cx1) * 4;
+          const i01 = (cy1 * sq + cx0) * 4;
+          const i11 = (cy1 * sq + cx1) * 4;
+          const w00 = (1 - tx) * (1 - ty);
+          const w10 =      tx  * (1 - ty);
+          const w01 = (1 - tx) *      ty;
+          const w11 =      tx  *      ty;
+
+          od[oi]   = sd[i00]   * w00 + sd[i10]   * w10 + sd[i01]   * w01 + sd[i11]   * w11;
+          od[oi+1] = sd[i00+1] * w00 + sd[i10+1] * w10 + sd[i01+1] * w01 + sd[i11+1] * w11;
+          od[oi+2] = sd[i00+2] * w00 + sd[i10+2] * w10 + sd[i01+2] * w01 + sd[i11+2] * w11;
+          od[oi+3] = sd[i00+3] * w00 + sd[i10+3] * w10 + sd[i01+3] * w01 + sd[i11+3] * w11;
+        }
+      }
+
+      ctx.putImageData(out, 0, 0);
+      loading.classList.remove('visible');
+    }, 20));
+  }
+
+  // --- Copy to clipboard ---
+
+  copyBtn.addEventListener('click', () => {
+    canvas.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        copyOk.classList.add('visible');
+        setTimeout(() => copyOk.classList.remove('visible'), 2200);
+      } catch (err) {
+        alert('コピー失敗: ' + err.message);
+      }
+    }, 'image/png');
+  });
+
+  // --- Download ---
+
+  dlBtn.addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.download = `fisheye_${currentName}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+</script>
+</body>
+</html>
