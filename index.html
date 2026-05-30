@@ -21,7 +21,7 @@
     /* ── Header ── */
     .site-header {
       width: 100%;
-      max-width: 900px;
+      max-width: 860px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -74,7 +74,7 @@
     /* ── Main wrapper ── */
     .main-wrap {
       width: 100%;
-      max-width: 900px;
+      max-width: 860px;
       display: flex;
       flex-direction: column;
       gap: 22px;
@@ -91,7 +91,7 @@
     /* ── Drop Zone ── */
     #dropZone {
       width: 100%;
-      height: 340px;
+      height: 320px;
       border: 2px dashed #3a3a3a;
       border-radius: 16px;
       display: flex;
@@ -130,18 +130,11 @@
 
     #fileInput { display: none; }
 
-    /* ── Preview area (canvas + X/Y sliders) ── */
-    .preview-area {
+    /* ── Preview panel ── */
+    .preview-panel {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    .preview-and-y {
-      display: flex;
-      gap: 10px;
       align-items: center;
+      justify-content: center;
     }
 
     .canvas-wrap {
@@ -154,13 +147,17 @@
         repeating-conic-gradient(#2c2c2c 0% 25%, #1a1a1a 0% 50%)
         0 0 / 20px 20px;
       box-shadow: 0 0 0 1px #333, 0 8px 40px rgba(0,0,0,0.6);
-      flex-shrink: 0;
+      cursor: grab;
+      user-select: none;
     }
+
+    .canvas-wrap.dragging { cursor: grabbing; }
 
     #outputCanvas {
       display: block;
       width: 300px;
       height: 300px;
+      pointer-events: none;
     }
 
     .loading {
@@ -175,6 +172,7 @@
       gap: 12px;
       font-size: 0.88rem;
       color: #ccc;
+      pointer-events: none;
     }
 
     .loading.visible { display: flex; }
@@ -190,35 +188,55 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Y slider (vertical, right of preview) */
-    .y-slider-wrap {
+    /* ── Controls ── */
+    .controls {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .control-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      height: 300px;
+      gap: 10px;
     }
 
-    input.vert-slider {
-      writing-mode: vertical-lr;
-      height: 280px;
-      width: 20px;
-      -webkit-appearance: slider-vertical;
-      appearance: slider-vertical;
-      cursor: pointer;
-      outline: none;
-      background: #3a3a3a;
+    .control-row > label:first-child {
+      font-size: 0.85rem;
+      color: #aaa;
+      white-space: nowrap;
+      min-width: 10em;
     }
 
-    /* X slider (horizontal, below preview) */
-    .x-slider-wrap {
-      width: 300px;
+    .control-row input[type="range"] { flex: 1; }
+
+    /* Size control group (row + sub-row) */
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
     }
 
-    .x-slider-wrap input[type="range"] {
-      width: 100%;
+    .size-sub {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-left: calc(10em + 10px);
+      font-size: 0.74rem;
     }
 
-    /* ── Common slider styles ── */
+    .size-hint { color: #666; }
+
+    .upscale-note { color: #8a7040; }
+    .upscale-note.hidden { display: none; }
+
+    .bg-opt { display: none; }
+    .bg-opt.visible { display: flex; }
+
+    /* Sliders */
     input[type="range"] {
       height: 4px;
       -webkit-appearance: none;
@@ -250,39 +268,6 @@
       cursor: pointer;
     }
 
-    input.vert-slider::-webkit-slider-thumb {
-      width: 16px;
-      height: 16px;
-    }
-
-    /* ── Controls ── */
-    .controls {
-      background: #1e1e1e;
-      border-radius: 12px;
-      padding: 20px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .control-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .control-row > label:first-child {
-      font-size: 0.85rem;
-      color: #aaa;
-      white-space: nowrap;
-      min-width: 10em;
-    }
-
-    .control-row input[type="range"] { flex: 1; }
-
-    .bg-opt { display: none; }
-    .bg-opt.visible { display: flex; }
-
     .value-display {
       font-size: 0.85rem;
       color: #ccc;
@@ -291,12 +276,11 @@
       text-align: right;
     }
 
-    /* Size hint */
-    .size-hint {
-      font-size: 0.75rem;
+    .size-max {
+      font-size: 0.74rem;
       color: #555;
       white-space: nowrap;
-      min-width: 9em;
+      min-width: 7em;
     }
 
     /* Undo button */
@@ -434,13 +418,10 @@
     #tooltip.visible { opacity: 1; }
 
     /* ── Responsive ── */
-    @media (max-width: 680px) {
+    @media (max-width: 620px) {
       .dual-panel { grid-template-columns: 1fr; }
       .canvas-wrap { width: 260px; height: 260px; }
       #outputCanvas { width: 260px; height: 260px; }
-      .x-slider-wrap { width: 260px; }
-      .y-slider-wrap { height: 260px; }
-      input.vert-slider { height: 240px; }
       #dropZone { height: 200px; }
     }
   </style>
@@ -449,7 +430,7 @@
 
 <header class="site-header">
   <div>
-    <h1><span id="titleEl"></span><span class="title-ver">v1.2.0</span></h1>
+    <h1><span id="titleEl"></span><span class="title-ver">v1.3.0</span></h1>
     <p class="subtitle" id="subtitleEl"></p>
   </div>
   <div class="lang-toggle">
@@ -460,7 +441,7 @@
 </header>
 
 <main class="main-wrap">
-  <!-- Dual panel: drop zone + preview with X/Y sliders -->
+  <!-- Dual panel: drop zone + preview (draggable) -->
   <div class="dual-panel">
     <div id="dropZone" data-tooltip-key="tooltipDrop">
       <div class="dz-icon">&#128248;</div>
@@ -469,24 +450,13 @@
       <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
     </div>
 
-    <!-- Preview: canvas + Y slider (right) + X slider (below) -->
-    <div class="preview-area">
-      <div class="preview-and-y">
-        <div class="canvas-wrap">
-          <canvas id="outputCanvas" width="1000" height="1000"></canvas>
-          <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <span id="processingText"></span>
-          </div>
+    <div class="preview-panel">
+      <div class="canvas-wrap" id="canvasWrap" data-tooltip-key="tooltipDrag">
+        <canvas id="outputCanvas" width="1000" height="1000"></canvas>
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <span id="processingText"></span>
         </div>
-        <div class="y-slider-wrap" data-tooltip-key="tooltipOffset">
-          <input type="range" id="ySlider" class="vert-slider"
-                 min="-0.5" max="0.5" step="0.01" value="0">
-        </div>
-      </div>
-      <div class="x-slider-wrap" data-tooltip-key="tooltipOffset">
-        <input type="range" id="xSlider"
-               min="-0.5" max="0.5" step="0.01" value="0">
       </div>
     </div>
   </div>
@@ -507,13 +477,19 @@
       <span class="value-display" id="zoomValue">1.00x</span>
     </div>
 
-    <!-- Output size -->
-    <div class="control-row" data-tooltip-key="tooltipSize">
-      <label id="labelSize"></label>
-      <input type="range" id="sizeSlider" min="0" max="5" step="1" value="5">
-      <span class="value-display" id="sizeValue">1000 px</span>
-      <span class="size-hint" id="sizeHint"></span>
-      <button class="btn-undo" id="undoBtn" data-tooltip-key="tooltipUndo" disabled>↩ Undo</button>
+    <!-- Output size (with sub-row for hint + upscale note) -->
+    <div class="control-group">
+      <div class="control-row" data-tooltip-key="tooltipSize">
+        <label id="labelSize"></label>
+        <input type="range" id="sizeSlider" min="0" max="7" step="1" value="5">
+        <span class="value-display" id="sizeValue">1024 px</span>
+        <span class="size-max" id="sizeMax"></span>
+        <button class="btn-undo" id="undoBtn" data-tooltip-key="tooltipUndo" disabled>↩ Undo</button>
+      </div>
+      <div class="size-sub">
+        <span class="size-hint" id="sizeHint"></span>
+        <span class="upscale-note hidden" id="upscaleNote"></span>
+      </div>
     </div>
 
     <!-- Threshold (bg-opt) -->
@@ -553,67 +529,74 @@
 
 <script>
   // ── Presets ───────────────────────────────────────────────
-  const PRESETS = [32, 64, 128, 256, 512, 1000];
+  const ALL_PRESETS = [32, 64, 128, 256, 512, 1024, 2048, 4096];
+
+  // Valid presets filtered by loaded image size (all by default)
+  let validPresets = [...ALL_PRESETS];
 
   // ── i18n strings ──────────────────────────────────────────
   const S = {
     jp: {
-      title:            'Fisheye Tool',
-      subtitle:         '円周魚眼レンズ変換ツール',
-      dropMain:         '<span>クリックして画像を選択</span>、またはここにドロップ',
-      dropHint:         'JPG・PNG 対応 &nbsp;/&nbsp; Ctrl+V で貼り付けも可',
-      processing:       '変換中…',
-      curvature:        '湾曲率',
-      zoom:             '拡大率',
-      outputSize:       '出力サイズ',
-      bgRemove:         '背景透明化',
-      threshold:        'しきい値',
-      lineColor:        '線の色',
-      copy:             'コピー',
-      download:         'ダウンロード',
-      copied:           'クリップボードにコピーしました',
-      reset:            '別の画像を使う',
-      sizeHints:        ['ファビコン', '小アイコン', 'アプリアイコン', '中アイコン', 'SNSアイコン・サムネイル', 'フル解像度'],
-      tooltipDrop:      '画像をドロップ、クリック、またはCtrl+Vで貼り付け',
+      title:        'Fisheye Tool',
+      subtitle:     '円周魚眼レンズ変換ツール',
+      dropMain:     '<span>クリックして画像を選択</span>、またはここにドロップ',
+      dropHint:     'JPG・PNG 対応 &nbsp;/&nbsp; Ctrl+V で貼り付けも可',
+      processing:   '変換中…',
+      curvature:    '湾曲率',
+      zoom:         '拡大率',
+      outputSize:   '出力サイズ',
+      bgRemove:     '背景透明化',
+      threshold:    'しきい値',
+      lineColor:    '線の色',
+      copy:         'コピー',
+      download:     'ダウンロード',
+      copied:       'クリップボードにコピーしました',
+      reset:        '別の画像を使う',
+      sizeHints:    ['ファビコン', '小アイコン', 'アプリアイコン', '中アイコン', 'SNSアイコン', '高解像度アイコン', '印刷・大バナー用', '超高解像度'],
+      sizeMaxLabel: n => `最大 ${n}px`,
+      upscaleNote:  '※ 元画像の解像度が上限です。これ以上は拡大補間になります。',
+      tooltipDrop:  '画像をドロップ、クリック、またはCtrl+Vで貼り付け',
+      tooltipDrag:  '画像をドラッグして位置を調整',
       tooltipCurvature: '球面の膨らみ強度。大きいほど中央が拡大される',
-      tooltipZoom:      '元画像の切り取り範囲を拡大・縮小する',
-      tooltipSize:      '出力画像の解像度プリセットを選択する',
-      tooltipUndo:      'ひとつ前のサイズに戻す',
-      tooltipOffset:    'レンズの中心位置を調整する',
+      tooltipZoom:  '元画像の切り取り範囲を拡大・縮小する',
+      tooltipSize:  '出力画像の解像度プリセットを選択する',
+      tooltipUndo:  'ひとつ前のサイズに戻す',
       tooltipBgRemove:  '白背景を透明にし、線の色を変換する',
       tooltipThreshold: '線と背景の判定境界。アンチエイリアス部分の調整に使用',
-      tooltipColor:     '線の置換色を指定',
-      tooltipCopy:      '変換結果をクリップボードにPNG形式でコピー',
-      tooltipDl:        '変換結果をPNGファイルで保存',
+      tooltipColor: '線の置換色を指定',
+      tooltipCopy:  '変換結果をクリップボードにPNG形式でコピー',
+      tooltipDl:    '変換結果をPNGファイルで保存',
     },
     en: {
-      title:            'Fisheye Tool',
-      subtitle:         'Circular Fisheye Lens Converter',
-      dropMain:         '<span>Click to select an image</span>, or drop here',
-      dropHint:         'JPG・PNG supported &nbsp;/&nbsp; Paste with Ctrl+V',
-      processing:       'Processing…',
-      curvature:        'Curvature',
-      zoom:             'Zoom',
-      outputSize:       'Output Size',
-      bgRemove:         'Remove Background',
-      threshold:        'Threshold',
-      lineColor:        'Line Color',
-      copy:             'Copy',
-      download:         'Download',
-      copied:           'Copied to clipboard',
-      reset:            'Use another image',
-      sizeHints:        ['Favicon', 'Small icon', 'App icon', 'Medium icon', 'SNS icon, Thumbnail', 'Full resolution'],
-      tooltipDrop:      'Drop image here, click, or paste with Ctrl+V',
+      title:        'Fisheye Tool',
+      subtitle:     'Circular Fisheye Lens Converter',
+      dropMain:     '<span>Click to select an image</span>, or drop here',
+      dropHint:     'JPG・PNG supported &nbsp;/&nbsp; Paste with Ctrl+V',
+      processing:   'Processing…',
+      curvature:    'Curvature',
+      zoom:         'Zoom',
+      outputSize:   'Output Size',
+      bgRemove:     'Remove Background',
+      threshold:    'Threshold',
+      lineColor:    'Line Color',
+      copy:         'Copy',
+      download:     'Download',
+      copied:       'Copied to clipboard',
+      reset:        'Use another image',
+      sizeHints:    ['Favicon', 'Small icon', 'App icon', 'Medium icon', 'SNS icon', 'Hi-res icon', 'Print / Large banner', 'Ultra hi-res'],
+      sizeMaxLabel: n => `Max ${n}px`,
+      upscaleNote:  '※ Limited by source image resolution. Larger sizes will be upscaled.',
+      tooltipDrop:  'Drop image here, click, or paste with Ctrl+V',
+      tooltipDrag:  'Drag the image to adjust position',
       tooltipCurvature: 'Sphere bulge intensity. Higher values expand the center more',
-      tooltipZoom:      'Zoom in or out on the source image',
-      tooltipSize:      'Select the output image resolution',
-      tooltipUndo:      'Undo last size change',
-      tooltipOffset:    'Adjust the center position of the lens',
+      tooltipZoom:  'Zoom in or out on the source image',
+      tooltipSize:  'Select the output image resolution',
+      tooltipUndo:  'Undo last size change',
       tooltipBgRemove:  'Make white background transparent and replace line colors',
       tooltipThreshold: 'Boundary between lines and background. Adjust for antialiased edges',
-      tooltipColor:     'Specify the replacement color for lines',
-      tooltipCopy:      'Copy the result to clipboard as PNG',
-      tooltipDl:        'Save the result as a PNG file',
+      tooltipColor: 'Specify the replacement color for lines',
+      tooltipCopy:  'Copy the result to clipboard as PNG',
+      tooltipDl:    'Save the result as a PNG file',
     }
   };
 
@@ -642,8 +625,9 @@
     document.getElementById('copyOk').textContent         = s.copied;
     document.getElementById('resetLink').textContent      = s.reset;
 
-    // Update size hint with new language
-    document.getElementById('sizeHint').textContent = s.sizeHints[sizeIndex];
+    // Update dynamic size elements
+    updateSizeDisplay();
+    updateSizeMax();
 
     document.getElementById('langJP').classList.toggle('active', l === 'jp');
     document.getElementById('langEN').classList.toggle('active', l === 'en');
@@ -656,7 +640,8 @@
   const tooltipEl = document.getElementById('tooltip');
 
   function showTooltip(key, e) {
-    const text = S[lang][key];
+    const val = S[lang][key];
+    const text = typeof val === 'function' ? null : val;
     if (!text) return;
     tooltipEl.textContent = text;
     moveTooltip(e);
@@ -685,6 +670,7 @@
   // ── Element refs ──────────────────────────────────────────
   const dropZone         = document.getElementById('dropZone');
   const fileInput        = document.getElementById('fileInput');
+  const canvasWrap       = document.getElementById('canvasWrap');
   const canvas           = document.getElementById('outputCanvas');
   const ctx              = canvas.getContext('2d');
   const loadingEl        = document.getElementById('loading');
@@ -698,10 +684,10 @@
   const zoomValueEl      = document.getElementById('zoomValue');
   const sizeSlider       = document.getElementById('sizeSlider');
   const sizeValueEl      = document.getElementById('sizeValue');
+  const sizeMaxEl        = document.getElementById('sizeMax');
   const sizeHintEl       = document.getElementById('sizeHint');
+  const upscaleNoteEl    = document.getElementById('upscaleNote');
   const undoBtn          = document.getElementById('undoBtn');
-  const xSlider          = document.getElementById('xSlider');
-  const ySlider          = document.getElementById('ySlider');
   const bgToggle         = document.getElementById('bgToggle');
   const thresholdRow     = document.getElementById('thresholdRow');
   const colorRow         = document.getElementById('colorRow');
@@ -712,6 +698,7 @@
   // ── State ─────────────────────────────────────────────────
   let currentImg  = null;
   let currentName = 'image';
+  let srcMaxSize  = null;   // min(w,h) of loaded image
   let strength    = 1.0;
   let zoom        = 1.0;
   let offsetX     = 0.0;
@@ -719,17 +706,52 @@
   let bgRemove    = false;
   let threshold   = 128;
   let lineColor   = '#E67E22';
-  let sizeIndex   = 5;          // index into PRESETS (default 1000px)
-  let outputSize  = 1000;
-  let sizeHistory = [];         // undo stack (up to 10)
+  let sizeIndex   = 5;          // index into validPresets (default 1024px)
+  let outputSize  = 1024;
+  let sizeHistory = [];         // undo stack (max 10)
 
   // ── Size display helpers ──────────────────────────────────
   function updateSizeDisplay() {
     sizeValueEl.textContent = outputSize + ' px';
-    sizeHintEl.textContent  = S[lang].sizeHints[sizeIndex];
+    const hintIdx = ALL_PRESETS.indexOf(outputSize);
+    sizeHintEl.textContent = hintIdx >= 0 ? S[lang].sizeHints[hintIdx] : '';
+    // Upscale note: show when at max valid preset and there's a larger preset available
+    const atMax = sizeIndex === validPresets.length - 1;
+    const hasLarger = validPresets.length < ALL_PRESETS.length;
+    const limited = srcMaxSize !== null && outputSize >= srcMaxSize;
+    if (atMax && (hasLarger || limited)) {
+      upscaleNoteEl.textContent = S[lang].upscaleNote;
+      upscaleNoteEl.classList.remove('hidden');
+    } else {
+      upscaleNoteEl.classList.add('hidden');
+    }
   }
 
-  // ── Init lang (after sizeIndex is defined) ────────────────
+  function updateSizeMax() {
+    if (srcMaxSize !== null) {
+      sizeMaxEl.textContent = S[lang].sizeMaxLabel(srcMaxSize);
+    } else {
+      sizeMaxEl.textContent = '';
+    }
+  }
+
+  function refreshValidPresets() {
+    if (srcMaxSize === null) {
+      validPresets = [...ALL_PRESETS];
+    } else {
+      validPresets = ALL_PRESETS.filter(p => p <= srcMaxSize);
+      if (validPresets.length === 0) validPresets = [ALL_PRESETS[0]];
+    }
+    sizeSlider.max = validPresets.length - 1;
+    // Clamp current index
+    if (sizeIndex >= validPresets.length) {
+      sizeIndex = validPresets.length - 1;
+    }
+    sizeSlider.value = sizeIndex;
+    outputSize = validPresets[sizeIndex];
+  }
+
+  // ── Init ──────────────────────────────────────────────────
   applyLang(lang);
   updateSizeDisplay();
 
@@ -762,6 +784,7 @@
 
   resetLink.addEventListener('click', () => {
     currentImg = null;
+    srcMaxSize = null;
     fileInput.value = '';
     canvas.width = canvas.height = outputSize;
     ctx.clearRect(0, 0, outputSize, outputSize);
@@ -769,7 +792,69 @@
     dlBtn.disabled   = true;
     resetLink.classList.add('hidden');
     copyOk.classList.remove('visible');
+    offsetX = offsetY = 0;
+    refreshValidPresets();
+    updateSizeMax();
+    updateSizeDisplay();
   });
+
+  // ── Drag position control ─────────────────────────────────
+  let isDragging  = false;
+  let lastDragX   = 0;
+  let lastDragY   = 0;
+  let renderPending = false;
+
+  function onDragStart(clientX, clientY) {
+    if (!currentImg) return;
+    isDragging = true;
+    lastDragX = clientX;
+    lastDragY = clientY;
+    canvasWrap.classList.add('dragging');
+  }
+
+  function onDragMove(clientX, clientY) {
+    if (!isDragging || !currentImg) return;
+    const dx = clientX - lastDragX;
+    const dy = clientY - lastDragY;
+    lastDragX = clientX;
+    lastDragY = clientY;
+    const displaySize = canvasWrap.offsetWidth;
+    offsetX += dx / displaySize / zoom;
+    offsetY += dy / displaySize / zoom;
+    if (!renderPending) {
+      renderPending = true;
+      requestAnimationFrame(() => {
+        renderPending = false;
+        if (currentImg) runFisheye(currentImg);
+      });
+    }
+  }
+
+  function onDragEnd() {
+    isDragging = false;
+    canvasWrap.classList.remove('dragging');
+  }
+
+  // Mouse
+  canvasWrap.addEventListener('mousedown', e => {
+    onDragStart(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => onDragMove(e.clientX, e.clientY));
+  document.addEventListener('mouseup', onDragEnd);
+
+  // Touch
+  canvasWrap.addEventListener('touchstart', e => {
+    onDragStart(e.touches[0].clientX, e.touches[0].clientY);
+    e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchmove', e => {
+    if (isDragging) {
+      onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+      e.preventDefault();
+    }
+  }, { passive: false });
+  document.addEventListener('touchend', onDragEnd);
 
   // ── Control handlers ──────────────────────────────────────
   strengthSlider.addEventListener('input', () => {
@@ -787,11 +872,10 @@
   sizeSlider.addEventListener('input', () => {
     const newIndex = parseInt(sizeSlider.value);
     if (newIndex === sizeIndex) return;
-    // Push to undo history (max 10)
     sizeHistory.push(sizeIndex);
     if (sizeHistory.length > 10) sizeHistory.shift();
     sizeIndex  = newIndex;
-    outputSize = PRESETS[sizeIndex];
+    outputSize = validPresets[sizeIndex];
     updateSizeDisplay();
     undoBtn.disabled = false;
     if (currentImg) runFisheye(currentImg);
@@ -800,20 +884,10 @@
   undoBtn.addEventListener('click', () => {
     if (sizeHistory.length === 0) return;
     sizeIndex  = sizeHistory.pop();
-    outputSize = PRESETS[sizeIndex];
+    outputSize = validPresets[sizeIndex];
     sizeSlider.value = sizeIndex;
     updateSizeDisplay();
     undoBtn.disabled = sizeHistory.length === 0;
-    if (currentImg) runFisheye(currentImg);
-  });
-
-  xSlider.addEventListener('input', () => {
-    offsetX = parseFloat(xSlider.value);
-    if (currentImg) runFisheye(currentImg);
-  });
-
-  ySlider.addEventListener('input', () => {
-    offsetY = parseFloat(ySlider.value);
     if (currentImg) runFisheye(currentImg);
   });
 
@@ -841,7 +915,17 @@
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
-      img.onload = () => { currentImg = img; runFisheye(img); };
+      img.onload = () => {
+        currentImg = img;
+        srcMaxSize = Math.min(img.width, img.height);
+        offsetX = offsetY = 0;
+        sizeHistory = [];
+        undoBtn.disabled = true;
+        refreshValidPresets();
+        updateSizeMax();
+        updateSizeDisplay();
+        runFisheye(img);
+      };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
@@ -856,14 +940,12 @@
     ];
   }
 
-  // ── Fisheye + zoom + offset + bg removal + output size ────
+  // ── Fisheye transform ─────────────────────────────────────
   function runFisheye(img) {
     loadingEl.classList.add('visible');
 
     requestAnimationFrame(() => setTimeout(() => {
       const OUT = outputSize;
-
-      // Resize canvas to output size
       canvas.width = canvas.height = OUT;
 
       // Centre-crop source to square
@@ -879,8 +961,8 @@
       const out = ctx.createImageData(OUT, OUT);
       const od  = out.data;
       const [lr, lg, lb] = hexToRgb(lineColor);
-
       const outM1 = OUT - 1;
+
       for (let py = 0; py < OUT; py++) {
         const ny = (py / outM1) * 2 - 1;
         for (let px = 0; px < OUT; px++) {
@@ -890,11 +972,11 @@
 
           if (r > 1) { od[oi] = od[oi+1] = od[oi+2] = od[oi+3] = 0; continue; }
 
-          // Spherical projection with strength
+          // Spherical projection (asin-based)
           const r_sphere = Math.asin(r) / (Math.PI / 2);
           const r_src    = r + strength * (r_sphere - r);
 
-          // Zoom + offset → source sampling coordinate
+          // Zoom + drag offset → source coordinate
           let sx, sy;
           if (r < 1e-9) {
             sx = 0.5 + offsetX;
