@@ -33,24 +33,22 @@
       font-weight: 700;
       color: #fff;
       letter-spacing: 0.02em;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .title-ver {
+      font-size: 0.8rem;
+      font-weight: 400;
+      color: #555;
+      letter-spacing: 0;
     }
 
     .subtitle {
       font-size: 0.85rem;
       color: #666;
       margin-top: 4px;
-    }
-
-    .version-badge {
-      display: inline-block;
-      font-size: 0.72rem;
-      color: #555;
-      background: #252525;
-      border: 1px solid #333;
-      border-radius: 4px;
-      padding: 1px 6px;
-      margin-top: 6px;
-      font-variant-numeric: tabular-nums;
     }
 
     .lang-toggle {
@@ -252,7 +250,6 @@
       cursor: pointer;
     }
 
-    /* Vertical slider thumb override */
     input.vert-slider::-webkit-slider-thumb {
       width: 16px;
       height: 16px;
@@ -271,7 +268,7 @@
     .control-row {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
     }
 
     .control-row > label:first-child {
@@ -293,6 +290,31 @@
       min-width: 4em;
       text-align: right;
     }
+
+    /* Size hint */
+    .size-hint {
+      font-size: 0.75rem;
+      color: #555;
+      white-space: nowrap;
+      min-width: 9em;
+    }
+
+    /* Undo button */
+    .btn-undo {
+      background: #252525;
+      color: #777;
+      border: 1px solid #353535;
+      border-radius: 5px;
+      padding: 3px 9px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-undo:not(:disabled):hover { color: #ccc; border-color: #555; }
+    .btn-undo:disabled { opacity: 0.3; cursor: not-allowed; }
 
     /* Toggle switch */
     .toggle-wrap {
@@ -427,9 +449,8 @@
 
 <header class="site-header">
   <div>
-    <h1 id="titleEl"></h1>
+    <h1><span id="titleEl"></span><span class="title-ver">v1.2.0</span></h1>
     <p class="subtitle" id="subtitleEl"></p>
-    <span class="version-badge">v1.1.0</span>
   </div>
   <div class="lang-toggle">
     <span id="langJP" class="lang-btn">JP</span>
@@ -441,7 +462,6 @@
 <main class="main-wrap">
   <!-- Dual panel: drop zone + preview with X/Y sliders -->
   <div class="dual-panel">
-    <!-- Input drop zone -->
     <div id="dropZone" data-tooltip-key="tooltipDrop">
       <div class="dz-icon">&#128248;</div>
       <p class="dz-main" id="dzMain"></p>
@@ -449,7 +469,7 @@
       <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
     </div>
 
-    <!-- Preview area: canvas + Y slider (right) + X slider (below) -->
+    <!-- Preview: canvas + Y slider (right) + X slider (below) -->
     <div class="preview-area">
       <div class="preview-and-y">
         <div class="canvas-wrap">
@@ -459,13 +479,11 @@
             <span id="processingText"></span>
           </div>
         </div>
-        <!-- Y slider: vertical, right of canvas -->
         <div class="y-slider-wrap" data-tooltip-key="tooltipOffset">
           <input type="range" id="ySlider" class="vert-slider"
                  min="-0.5" max="0.5" step="0.01" value="0">
         </div>
       </div>
-      <!-- X slider: horizontal, below canvas -->
       <div class="x-slider-wrap" data-tooltip-key="tooltipOffset">
         <input type="range" id="xSlider"
                min="-0.5" max="0.5" step="0.01" value="0">
@@ -487,6 +505,15 @@
       <label id="labelZoom"></label>
       <input type="range" id="zoomSlider" min="0.5" max="3.0" step="0.01" value="1.0">
       <span class="value-display" id="zoomValue">1.00x</span>
+    </div>
+
+    <!-- Output size -->
+    <div class="control-row" data-tooltip-key="tooltipSize">
+      <label id="labelSize"></label>
+      <input type="range" id="sizeSlider" min="0" max="5" step="1" value="5">
+      <span class="value-display" id="sizeValue">1000 px</span>
+      <span class="size-hint" id="sizeHint"></span>
+      <button class="btn-undo" id="undoBtn" data-tooltip-key="tooltipUndo" disabled>↩ Undo</button>
     </div>
 
     <!-- Threshold (bg-opt) -->
@@ -525,6 +552,9 @@
 <div id="tooltip"></div>
 
 <script>
+  // ── Presets ───────────────────────────────────────────────
+  const PRESETS = [32, 64, 128, 256, 512, 1000];
+
   // ── i18n strings ──────────────────────────────────────────
   const S = {
     jp: {
@@ -535,6 +565,7 @@
       processing:       '変換中…',
       curvature:        '湾曲率',
       zoom:             '拡大率',
+      outputSize:       '出力サイズ',
       bgRemove:         '背景透明化',
       threshold:        'しきい値',
       lineColor:        '線の色',
@@ -542,9 +573,12 @@
       download:         'ダウンロード',
       copied:           'クリップボードにコピーしました',
       reset:            '別の画像を使う',
+      sizeHints:        ['ファビコン', '小アイコン', 'アプリアイコン', '中アイコン', 'SNSアイコン・サムネイル', 'フル解像度'],
       tooltipDrop:      '画像をドロップ、クリック、またはCtrl+Vで貼り付け',
       tooltipCurvature: '球面の膨らみ強度。大きいほど中央が拡大される',
       tooltipZoom:      '元画像の切り取り範囲を拡大・縮小する',
+      tooltipSize:      '出力画像の解像度プリセットを選択する',
+      tooltipUndo:      'ひとつ前のサイズに戻す',
       tooltipOffset:    'レンズの中心位置を調整する',
       tooltipBgRemove:  '白背景を透明にし、線の色を変換する',
       tooltipThreshold: '線と背景の判定境界。アンチエイリアス部分の調整に使用',
@@ -560,6 +594,7 @@
       processing:       'Processing…',
       curvature:        'Curvature',
       zoom:             'Zoom',
+      outputSize:       'Output Size',
       bgRemove:         'Remove Background',
       threshold:        'Threshold',
       lineColor:        'Line Color',
@@ -567,9 +602,12 @@
       download:         'Download',
       copied:           'Copied to clipboard',
       reset:            'Use another image',
+      sizeHints:        ['Favicon', 'Small icon', 'App icon', 'Medium icon', 'SNS icon, Thumbnail', 'Full resolution'],
       tooltipDrop:      'Drop image here, click, or paste with Ctrl+V',
       tooltipCurvature: 'Sphere bulge intensity. Higher values expand the center more',
       tooltipZoom:      'Zoom in or out on the source image',
+      tooltipSize:      'Select the output image resolution',
+      tooltipUndo:      'Undo last size change',
       tooltipOffset:    'Adjust the center position of the lens',
       tooltipBgRemove:  'Make white background transparent and replace line colors',
       tooltipThreshold: 'Boundary between lines and background. Adjust for antialiased edges',
@@ -595,6 +633,7 @@
     document.getElementById('processingText').textContent = s.processing;
     document.getElementById('labelCurvature').textContent = s.curvature;
     document.getElementById('labelZoom').textContent      = s.zoom;
+    document.getElementById('labelSize').textContent      = s.outputSize;
     document.getElementById('labelBgRemove').textContent  = s.bgRemove;
     document.getElementById('labelThreshold').textContent = s.threshold;
     document.getElementById('labelLineColor').textContent = s.lineColor;
@@ -603,13 +642,15 @@
     document.getElementById('copyOk').textContent         = s.copied;
     document.getElementById('resetLink').textContent      = s.reset;
 
+    // Update size hint with new language
+    document.getElementById('sizeHint').textContent = s.sizeHints[sizeIndex];
+
     document.getElementById('langJP').classList.toggle('active', l === 'jp');
     document.getElementById('langEN').classList.toggle('active', l === 'en');
   }
 
   document.getElementById('langJP').addEventListener('click', () => applyLang('jp'));
   document.getElementById('langEN').addEventListener('click', () => applyLang('en'));
-  applyLang(lang);
 
   // ── Tooltip ───────────────────────────────────────────────
   const tooltipEl = document.getElementById('tooltip');
@@ -655,6 +696,10 @@
   const strengthValueEl  = document.getElementById('strengthValue');
   const zoomSlider       = document.getElementById('zoomSlider');
   const zoomValueEl      = document.getElementById('zoomValue');
+  const sizeSlider       = document.getElementById('sizeSlider');
+  const sizeValueEl      = document.getElementById('sizeValue');
+  const sizeHintEl       = document.getElementById('sizeHint');
+  const undoBtn          = document.getElementById('undoBtn');
   const xSlider          = document.getElementById('xSlider');
   const ySlider          = document.getElementById('ySlider');
   const bgToggle         = document.getElementById('bgToggle');
@@ -674,6 +719,19 @@
   let bgRemove    = false;
   let threshold   = 128;
   let lineColor   = '#E67E22';
+  let sizeIndex   = 5;          // index into PRESETS (default 1000px)
+  let outputSize  = 1000;
+  let sizeHistory = [];         // undo stack (up to 10)
+
+  // ── Size display helpers ──────────────────────────────────
+  function updateSizeDisplay() {
+    sizeValueEl.textContent = outputSize + ' px';
+    sizeHintEl.textContent  = S[lang].sizeHints[sizeIndex];
+  }
+
+  // ── Init lang (after sizeIndex is defined) ────────────────
+  applyLang(lang);
+  updateSizeDisplay();
 
   // ── Input handlers ────────────────────────────────────────
   dropZone.addEventListener('click', () => fileInput.click());
@@ -705,7 +763,8 @@
   resetLink.addEventListener('click', () => {
     currentImg = null;
     fileInput.value = '';
-    ctx.clearRect(0, 0, 1000, 1000);
+    canvas.width = canvas.height = outputSize;
+    ctx.clearRect(0, 0, outputSize, outputSize);
     copyBtn.disabled = true;
     dlBtn.disabled   = true;
     resetLink.classList.add('hidden');
@@ -722,6 +781,29 @@
   zoomSlider.addEventListener('input', () => {
     zoom = parseFloat(zoomSlider.value);
     zoomValueEl.textContent = zoom.toFixed(2) + 'x';
+    if (currentImg) runFisheye(currentImg);
+  });
+
+  sizeSlider.addEventListener('input', () => {
+    const newIndex = parseInt(sizeSlider.value);
+    if (newIndex === sizeIndex) return;
+    // Push to undo history (max 10)
+    sizeHistory.push(sizeIndex);
+    if (sizeHistory.length > 10) sizeHistory.shift();
+    sizeIndex  = newIndex;
+    outputSize = PRESETS[sizeIndex];
+    updateSizeDisplay();
+    undoBtn.disabled = false;
+    if (currentImg) runFisheye(currentImg);
+  });
+
+  undoBtn.addEventListener('click', () => {
+    if (sizeHistory.length === 0) return;
+    sizeIndex  = sizeHistory.pop();
+    outputSize = PRESETS[sizeIndex];
+    sizeSlider.value = sizeIndex;
+    updateSizeDisplay();
+    undoBtn.disabled = sizeHistory.length === 0;
     if (currentImg) runFisheye(currentImg);
   });
 
@@ -774,12 +856,15 @@
     ];
   }
 
-  // ── Fisheye + zoom + offset + optional bg removal ─────────
+  // ── Fisheye + zoom + offset + bg removal + output size ────
   function runFisheye(img) {
     loadingEl.classList.add('visible');
 
     requestAnimationFrame(() => setTimeout(() => {
-      const OUT = 1000;
+      const OUT = outputSize;
+
+      // Resize canvas to output size
+      canvas.width = canvas.height = OUT;
 
       // Centre-crop source to square
       const sq = Math.min(img.width, img.height);
@@ -795,20 +880,21 @@
       const od  = out.data;
       const [lr, lg, lb] = hexToRgb(lineColor);
 
+      const outM1 = OUT - 1;
       for (let py = 0; py < OUT; py++) {
-        const ny = (py / (OUT - 1)) * 2 - 1;
+        const ny = (py / outM1) * 2 - 1;
         for (let px = 0; px < OUT; px++) {
-          const nx = (px / (OUT - 1)) * 2 - 1;
+          const nx = (px / outM1) * 2 - 1;
           const r  = Math.sqrt(nx * nx + ny * ny);
           const oi = (py * OUT + px) * 4;
 
           if (r > 1) { od[oi] = od[oi+1] = od[oi+2] = od[oi+3] = 0; continue; }
 
-          // Spherical projection (asin-based, strength-controlled)
+          // Spherical projection with strength
           const r_sphere = Math.asin(r) / (Math.PI / 2);
           const r_src    = r + strength * (r_sphere - r);
 
-          // Apply zoom and offset to sampling coordinates
+          // Zoom + offset → source sampling coordinate
           let sx, sy;
           if (r < 1e-9) {
             sx = 0.5 + offsetX;
@@ -874,7 +960,7 @@
   // ── Download ──────────────────────────────────────────────
   dlBtn.addEventListener('click', () => {
     const a = document.createElement('a');
-    a.download = `fisheye_${currentName}.png`;
+    a.download = `fisheye_${currentName}_${outputSize}px.png`;
     a.href = canvas.toDataURL('image/png');
     a.click();
   });
