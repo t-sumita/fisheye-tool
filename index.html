@@ -554,7 +554,7 @@
 
 <script>
   // ── Version ───────────────────────────────────────────────
-  const APP_VERSION = 'v1.3.5';
+  const APP_VERSION = 'v1.3.6';
   document.getElementById('version-display').textContent = APP_VERSION;
 
   // ── Presets ───────────────────────────────────────────────
@@ -859,8 +859,8 @@
     lastDragX = clientX;
     lastDragY = clientY;
     const displaySize = canvasWrap.offsetWidth;
-    offsetX += dx / displaySize / zoom;
-    offsetY += dy / displaySize / zoom;
+    offsetX -= dx / displaySize / zoom;
+    offsetY -= dy / displaySize / zoom;
     if (!renderPending) {
       renderPending = true;
       requestAnimationFrame(() => {
