@@ -433,7 +433,7 @@
 
 <header class="site-header">
   <div>
-    <h1><span id="titleEl"></span><span class="title-ver">v1.3.1</span></h1>
+    <h1><span id="titleEl"></span><span class="title-ver" id="version-display"></span></h1>
     <p class="subtitle" id="subtitleEl"></p>
   </div>
   <div class="lang-toggle">
@@ -531,6 +531,10 @@
 <footer class="site-footer">© 2026 Subutomo Dev</footer>
 
 <script>
+  // ── Version ───────────────────────────────────────────────
+  const APP_VERSION = 'v1.3.2';
+  document.getElementById('version-display').textContent = APP_VERSION;
+
   // ── Presets ───────────────────────────────────────────────
   const ALL_PRESETS = [32, 64, 128, 256, 512, 1024, 2048, 4096];
 
