@@ -71,21 +71,35 @@
     .lang-btn.active { color: #5b8fff; }
     .lang-sep { color: #444; }
 
-    /* ── Main wrapper ── */
+    /* ── Main wrapper (PC: 2-column grid) ── */
     .main-wrap {
       width: 100%;
       max-width: 860px;
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
+      display: grid;
+      grid-template-columns: 42% 1fr;
+      grid-template-areas:
+        "drop     preview"
+        "controls preview"
+        "actions  preview";
+      column-gap: 24px;
+      row-gap: 16px;
+      align-items: start;
     }
 
-    /* ── Dual panel ── */
-    .dual-panel {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 20px;
-      align-items: start;
+    #dropZone      { grid-area: drop; }
+    .controls      { grid-area: controls; }
+    .actions-group {
+      grid-area: actions;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+    .preview-panel {
+      grid-area: preview;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
     }
 
     /* ── Drop Zone ── */
@@ -129,13 +143,6 @@
     }
 
     #fileInput { display: none; }
-
-    /* ── Preview panel ── */
-    .preview-panel {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
 
     .canvas-wrap {
       position: relative;
@@ -420,7 +427,14 @@
 
     /* ── Responsive ── */
     @media (max-width: 620px) {
-      .dual-panel { grid-template-columns: 1fr; }
+      .main-wrap {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "drop"
+          "preview"
+          "controls"
+          "actions";
+      }
       .canvas-wrap { width: 260px; height: 260px; }
       #outputCanvas { width: 260px; height: 260px; }
       #dropZone { height: 80px; }
@@ -444,27 +458,15 @@
 </header>
 
 <main class="main-wrap">
-  <!-- Dual panel: drop zone + preview (draggable) -->
-  <div class="dual-panel">
-    <div id="dropZone" data-tooltip-key="tooltipDrop">
-      <div class="dz-icon">&#128248;</div>
-      <p class="dz-main" id="dzMain"></p>
-      <p class="dz-hint" id="dzHint"></p>
-      <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
-    </div>
-
-    <div class="preview-panel">
-      <div class="canvas-wrap" id="canvasWrap" data-tooltip-key="tooltipDrag">
-        <canvas id="outputCanvas" width="1000" height="1000"></canvas>
-        <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <span id="processingText"></span>
-        </div>
-      </div>
-    </div>
+  <!-- Left col 1: Drop zone -->
+  <div id="dropZone" data-tooltip-key="tooltipDrop">
+    <div class="dz-icon">&#128248;</div>
+    <p class="dz-main" id="dzMain"></p>
+    <p class="dz-hint" id="dzHint"></p>
+    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
   </div>
 
-  <!-- Controls -->
+  <!-- Left col 2: Controls -->
   <div class="controls">
     <!-- Curvature -->
     <div class="control-row" data-tooltip-key="tooltipCurvature">
@@ -518,13 +520,26 @@
     </div>
   </div>
 
-  <!-- Actions -->
-  <div class="actions">
-    <button class="btn btn-copy"     id="copyBtn" data-tooltip-key="tooltipCopy"     disabled></button>
-    <button class="btn btn-download" id="dlBtn"   data-tooltip-key="tooltipDl"       disabled></button>
+  <!-- Left col 3: Actions -->
+  <div class="actions-group">
+    <div class="actions">
+      <button class="btn btn-copy"     id="copyBtn" data-tooltip-key="tooltipCopy"     disabled></button>
+      <button class="btn btn-download" id="dlBtn"   data-tooltip-key="tooltipDl"       disabled></button>
+    </div>
+    <div class="copy-ok" id="copyOk"></div>
+    <div class="reset-link hidden" id="resetLink"></div>
   </div>
-  <div class="copy-ok" id="copyOk"></div>
-  <div class="reset-link hidden" id="resetLink"></div>
+
+  <!-- Right col: Preview (spans all rows) -->
+  <div class="preview-panel">
+    <div class="canvas-wrap" id="canvasWrap" data-tooltip-key="tooltipDrag">
+      <canvas id="outputCanvas" width="1000" height="1000"></canvas>
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <span id="processingText"></span>
+      </div>
+    </div>
+  </div>
 </main>
 
 <div id="tooltip"></div>
@@ -532,7 +547,7 @@
 
 <script>
   // ── Version ───────────────────────────────────────────────
-  const APP_VERSION = 'v1.3.3';
+  const APP_VERSION = 'v1.3.4';
   document.getElementById('version-display').textContent = APP_VERSION;
 
   // ── Presets ───────────────────────────────────────────────
