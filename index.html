@@ -15,7 +15,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 16px 60px;
+      padding: 32px 16px 60px;
+    }
+
+    /* ── Header ── */
+    .site-header {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
     }
 
     h1 {
@@ -23,27 +33,67 @@
       font-weight: 700;
       color: #fff;
       letter-spacing: 0.02em;
-      margin-bottom: 4px;
     }
 
     .subtitle {
       font-size: 0.85rem;
       color: #666;
-      margin-bottom: 36px;
+      margin-top: 4px;
     }
 
-    /* ---- Drop Zone ---- */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      padding-top: 2px;
+    }
+
+    .lang-btn {
+      cursor: pointer;
+      color: #555;
+      font-weight: 600;
+      transition: color 0.15s;
+      user-select: none;
+    }
+
+    .lang-btn:hover { color: #aaa; }
+    .lang-btn.active { color: #5b8fff; }
+    .lang-sep { color: #444; }
+
+    /* ── Main wrapper ── */
+    .main-wrap {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    /* ── Dual panel ── */
+    .dual-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    /* ── Drop Zone ── */
     #dropZone {
       width: 100%;
-      max-width: 520px;
+      height: 300px;
       border: 2px dashed #3a3a3a;
       border-radius: 16px;
-      padding: 56px 32px;
-      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
       cursor: pointer;
       background: #202020;
       transition: border-color 0.2s, background 0.2s;
       user-select: none;
+      padding: 20px;
     }
 
     #dropZone.dragover,
@@ -52,63 +102,50 @@
       background: #1c2235;
     }
 
-    .dz-icon {
-      font-size: 2.8rem;
-      margin-bottom: 14px;
-      color: #555;
-    }
+    .dz-icon { font-size: 2.4rem; color: #555; }
 
     .dz-main {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       color: #ccc;
-      margin-bottom: 6px;
+      text-align: center;
     }
 
-    .dz-main span {
-      color: #5b8fff;
-      font-weight: 600;
-    }
+    .dz-main span { color: #5b8fff; font-weight: 600; }
 
     .dz-hint {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: #555;
+      text-align: center;
     }
 
     #fileInput { display: none; }
 
-    /* ---- Preview Section ---- */
-    #previewSection {
-      display: none;
-      flex-direction: column;
+    /* ── Preview panel ── */
+    .preview-panel {
+      display: flex;
       align-items: center;
-      margin-top: 36px;
-      width: 100%;
-      max-width: 520px;
+      justify-content: center;
     }
 
-    #previewSection.visible { display: flex; }
-
-    /* Checkerboard container — clips the canvas to a circle */
     .canvas-wrap {
       position: relative;
-      width: 400px;
-      height: 400px;
+      width: 300px;
+      height: 300px;
       border-radius: 50%;
       overflow: hidden;
-      /* Checkerboard via repeating-conic-gradient (modern browsers) */
       background:
         repeating-conic-gradient(#2c2c2c 0% 25%, #1a1a1a 0% 50%)
         0 0 / 20px 20px;
       box-shadow: 0 0 0 1px #333, 0 8px 40px rgba(0,0,0,0.6);
+      flex-shrink: 0;
     }
 
     #outputCanvas {
       display: block;
-      width: 400px;
-      height: 400px;
+      width: 300px;
+      height: 300px;
     }
 
-    /* Loading overlay */
     .loading {
       display: none;
       position: absolute;
@@ -136,67 +173,33 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ---- Buttons ---- */
-    .actions {
+    /* ── Controls ── */
+    .controls {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px 24px;
       display: flex;
-      gap: 12px;
-      margin-top: 22px;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .btn {
-      padding: 10px 26px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.92rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: filter 0.15s, transform 0.1s;
-    }
-
-    .btn:hover   { filter: brightness(1.15); }
-    .btn:active  { transform: scale(0.96); }
-
-    .btn-copy     { background: #2d2d2d; color: #ddd; }
-    .btn-download { background: #5b8fff; color: #fff; }
-
-    .copy-ok {
-      margin-top: 8px;
-      font-size: 0.82rem;
-      color: #6ee06e;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .copy-ok.visible { opacity: 1; }
-
-    .reset-link {
-      margin-top: 20px;
-      font-size: 0.82rem;
-      color: #555;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-
-    .reset-link:hover { color: #999; }
-
-    /* ---- Strength slider ---- */
-    .strength-control {
+    .control-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-top: 18px;
-      width: 100%;
-      max-width: 400px;
+      gap: 14px;
     }
 
-    .strength-label {
+    .control-row > label:first-child {
       font-size: 0.85rem;
       color: #aaa;
       white-space: nowrap;
-      min-width: 3.5em;
+      min-width: 10em;
     }
 
-    #strengthSlider {
+    .bg-opt { display: none; }
+    .bg-opt.visible { display: flex; }
+
+    input[type="range"] {
       flex: 1;
       height: 4px;
       -webkit-appearance: none;
@@ -207,7 +210,7 @@
       cursor: pointer;
     }
 
-    #strengthSlider::-webkit-slider-thumb {
+    input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 16px;
       height: 16px;
@@ -217,9 +220,9 @@
       transition: background 0.15s;
     }
 
-    #strengthSlider::-webkit-slider-thumb:hover { background: #7aaaff; }
+    input[type="range"]::-webkit-slider-thumb:hover { background: #7aaaff; }
 
-    #strengthSlider::-moz-range-thumb {
+    input[type="range"]::-moz-range-thumb {
       width: 16px;
       height: 16px;
       background: #5b8fff;
@@ -228,73 +231,362 @@
       cursor: pointer;
     }
 
-    .strength-value {
+    .value-display {
       font-size: 0.85rem;
       color: #ccc;
       font-variant-numeric: tabular-nums;
-      min-width: 2.8em;
+      min-width: 3em;
       text-align: right;
+    }
+
+    /* Toggle switch */
+    .toggle-wrap {
+      position: relative;
+      display: inline-flex;
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .toggle-wrap input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: #3a3a3a;
+      border-radius: 12px;
+      transition: background 0.2s;
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: #888;
+      border-radius: 50%;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .toggle-wrap input:checked ~ .toggle-track { background: #2a4a8a; }
+
+    .toggle-wrap input:checked ~ .toggle-thumb {
+      transform: translateX(20px);
+      background: #5b8fff;
+    }
+
+    input[type="color"] {
+      width: 36px;
+      height: 28px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      background: none;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    /* ── Actions ── */
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 10px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+    }
+
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; filter: none !important; transform: none !important; }
+    .btn:not(:disabled):hover { filter: brightness(1.15); }
+    .btn:not(:disabled):active { transform: scale(0.96); }
+
+    .btn-copy     { background: #2d2d2d; color: #ddd; }
+    .btn-download { background: #5b8fff; color: #fff; }
+
+    .copy-ok {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #6ee06e;
+      min-height: 1.4em;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .copy-ok.visible { opacity: 1; }
+
+    .reset-link {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #555;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .reset-link:hover { color: #999; }
+    .reset-link.hidden { display: none; }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: fixed;
+      background: #252525;
+      color: #ccc;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      padding: 7px 11px;
+      border-radius: 6px;
+      border: 1px solid #383838;
+      pointer-events: none;
+      z-index: 9999;
+      max-width: 280px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    #tooltip.visible { opacity: 1; }
+
+    /* ── Responsive ── */
+    @media (max-width: 620px) {
+      .dual-panel { grid-template-columns: 1fr; }
+      .canvas-wrap { width: 260px; height: 260px; }
+      #outputCanvas { width: 260px; height: 260px; }
+      #dropZone { height: 200px; }
     }
   </style>
 </head>
 <body>
 
-<h1>Fisheye Tool</h1>
-<p class="subtitle">円周魚眼レンズ変換ツール</p>
+<header class="site-header">
+  <div>
+    <h1 id="titleEl"></h1>
+    <p class="subtitle" id="subtitleEl"></p>
+  </div>
+  <div class="lang-toggle">
+    <span id="langJP" class="lang-btn">JP</span>
+    <span class="lang-sep">/</span>
+    <span id="langEN" class="lang-btn">EN</span>
+  </div>
+</header>
 
-<div id="dropZone">
-  <div class="dz-icon">&#128248;</div>
-  <p class="dz-main"><span>クリックして画像を選択</span>、またはここにドロップ</p>
-  <p class="dz-hint">JPG・PNG 対応 &nbsp;/&nbsp; Ctrl+V で貼り付けも可</p>
-  <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
-</div>
+<main class="main-wrap">
+  <!-- Dual panel: drop zone + preview -->
+  <div class="dual-panel">
+    <div id="dropZone" data-tooltip-key="tooltipDrop">
+      <div class="dz-icon">&#128248;</div>
+      <p class="dz-main" id="dzMain"></p>
+      <p class="dz-hint" id="dzHint"></p>
+      <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
+    </div>
 
-<div id="previewSection">
-  <div class="canvas-wrap">
-    <canvas id="outputCanvas" width="1000" height="1000"></canvas>
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      変換中…
+    <div class="preview-panel">
+      <div class="canvas-wrap">
+        <canvas id="outputCanvas" width="1000" height="1000"></canvas>
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <span id="processingText"></span>
+        </div>
+      </div>
     </div>
   </div>
 
+  <!-- Controls -->
+  <div class="controls">
+    <!-- Curvature slider -->
+    <div class="control-row" data-tooltip-key="tooltipCurvature">
+      <label id="labelCurvature"></label>
+      <input type="range" id="strengthSlider" min="0" max="2" step="0.01" value="1">
+      <span class="value-display" id="strengthValue">1.00</span>
+    </div>
+
+    <!-- Threshold slider (bg-opt) -->
+    <div class="control-row bg-opt" id="thresholdRow" data-tooltip-key="tooltipThreshold">
+      <label id="labelThreshold"></label>
+      <input type="range" id="thresholdSlider" min="0" max="255" step="1" value="128">
+      <span class="value-display" id="thresholdValue">128</span>
+    </div>
+
+    <!-- Color picker (bg-opt) -->
+    <div class="control-row bg-opt" id="colorRow" data-tooltip-key="tooltipColor">
+      <label id="labelLineColor"></label>
+      <input type="color" id="colorPicker" value="#E67E22">
+    </div>
+
+    <!-- BG remove toggle -->
+    <div class="control-row" data-tooltip-key="tooltipBgRemove">
+      <label id="labelBgRemove"></label>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="bgToggle">
+        <span class="toggle-track"></span>
+        <span class="toggle-thumb"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Actions -->
   <div class="actions">
-    <button class="btn btn-copy"     id="copyBtn">コピー</button>
-    <button class="btn btn-download" id="dlBtn">ダウンロード</button>
+    <button class="btn btn-copy"     id="copyBtn" data-tooltip-key="tooltipCopy"     disabled></button>
+    <button class="btn btn-download" id="dlBtn"   data-tooltip-key="tooltipDl"       disabled></button>
   </div>
-  <div class="strength-control">
-    <span class="strength-label">湾曲率</span>
-    <input type="range" id="strengthSlider" min="0" max="2" step="0.01" value="1">
-    <span class="strength-value" id="strengthValue">1.00</span>
-  </div>
-  <div class="copy-ok" id="copyOk">クリップボードにコピーしました</div>
-  <div class="reset-link" id="resetLink">別の画像を使う</div>
-</div>
+  <div class="copy-ok hidden" id="copyOk"></div>
+  <div class="reset-link hidden" id="resetLink"></div>
+</main>
+
+<div id="tooltip"></div>
 
 <script>
-  const dropZone   = document.getElementById('dropZone');
-  const fileInput  = document.getElementById('fileInput');
-  const preview    = document.getElementById('previewSection');
-  const canvas     = document.getElementById('outputCanvas');
-  const loading    = document.getElementById('loading');
-  const copyBtn    = document.getElementById('copyBtn');
-  const dlBtn      = document.getElementById('dlBtn');
-  const copyOk     = document.getElementById('copyOk');
-  const resetLink       = document.getElementById('resetLink');
-  const strengthSlider  = document.getElementById('strengthSlider');
-  const strengthValueEl = document.getElementById('strengthValue');
+  // ── i18n strings ──────────────────────────────────────────
+  const S = {
+    jp: {
+      title:            'Fisheye Tool',
+      subtitle:         '円周魚眼レンズ変換ツール',
+      dropMain:         '<span>クリックして画像を選択</span>、またはここにドロップ',
+      dropHint:         'JPG・PNG 対応 &nbsp;/&nbsp; Ctrl+V で貼り付けも可',
+      processing:       '変換中…',
+      curvature:        '湾曲率',
+      bgRemove:         '背景透明化',
+      threshold:        'しきい値',
+      lineColor:        '線の色',
+      copy:             'コピー',
+      download:         'ダウンロード',
+      copied:           'クリップボードにコピーしました',
+      reset:            '別の画像を使う',
+      tooltipDrop:      '画像をドロップ、クリック、またはCtrl+Vで貼り付け',
+      tooltipCurvature: '球面の膨らみ強度。大きいほど中央が拡大される',
+      tooltipBgRemove:  '白背景を透明にし、線の色を変換する',
+      tooltipThreshold: '線と背景の判定境界。アンチエイリアス部分の調整に使用',
+      tooltipColor:     '線の置換色を指定',
+      tooltipCopy:      '変換結果をクリップボードにPNG形式でコピー',
+      tooltipDl:        '変換結果をPNGファイルで保存',
+    },
+    en: {
+      title:            'Fisheye Tool',
+      subtitle:         'Circular Fisheye Lens Converter',
+      dropMain:         '<span>Click to select an image</span>, or drop here',
+      dropHint:         'JPG・PNG supported &nbsp;/&nbsp; Paste with Ctrl+V',
+      processing:       'Processing…',
+      curvature:        'Curvature',
+      bgRemove:         'Remove Background',
+      threshold:        'Threshold',
+      lineColor:        'Line Color',
+      copy:             'Copy',
+      download:         'Download',
+      copied:           'Copied to clipboard',
+      reset:            'Use another image',
+      tooltipDrop:      'Drop image here, click, or paste with Ctrl+V',
+      tooltipCurvature: 'Sphere bulge intensity. Higher values expand the center more',
+      tooltipBgRemove:  'Make white background transparent and replace line colors',
+      tooltipThreshold: 'Boundary between lines and background. Adjust for antialiased edges',
+      tooltipColor:     'Specify the replacement color for lines',
+      tooltipCopy:      'Copy the result to clipboard as PNG',
+      tooltipDl:        'Save the result as a PNG file',
+    }
+  };
 
-  let currentName     = 'image';
-  let currentImg      = null;
-  let currentStrength = 1.0;
+  // ── Language ──────────────────────────────────────────────
+  let lang = navigator.language.startsWith('ja') ? 'jp' : 'en';
 
-  // --- Input handlers ---
+  function applyLang(l) {
+    lang = l;
+    const s = S[l];
+    document.documentElement.lang = l === 'jp' ? 'ja' : 'en';
+    document.title = s.title;
 
+    document.getElementById('titleEl').textContent        = s.title;
+    document.getElementById('subtitleEl').textContent     = s.subtitle;
+    document.getElementById('dzMain').innerHTML           = s.dropMain;
+    document.getElementById('dzHint').innerHTML           = s.dropHint;
+    document.getElementById('processingText').textContent = s.processing;
+    document.getElementById('labelCurvature').textContent = s.curvature;
+    document.getElementById('labelBgRemove').textContent  = s.bgRemove;
+    document.getElementById('labelThreshold').textContent = s.threshold;
+    document.getElementById('labelLineColor').textContent = s.lineColor;
+    document.getElementById('copyBtn').textContent        = s.copy;
+    document.getElementById('dlBtn').textContent          = s.download;
+    document.getElementById('copyOk').textContent         = s.copied;
+    document.getElementById('resetLink').textContent      = s.reset;
+
+    document.getElementById('langJP').classList.toggle('active', l === 'jp');
+    document.getElementById('langEN').classList.toggle('active', l === 'en');
+  }
+
+  document.getElementById('langJP').addEventListener('click', () => applyLang('jp'));
+  document.getElementById('langEN').addEventListener('click', () => applyLang('en'));
+  applyLang(lang);
+
+  // ── Tooltip ───────────────────────────────────────────────
+  const tooltipEl = document.getElementById('tooltip');
+
+  function showTooltip(key, e) {
+    const text = S[lang][key];
+    if (!text) return;
+    tooltipEl.textContent = text;
+    moveTooltip(e);
+    tooltipEl.classList.add('visible');
+  }
+
+  function moveTooltip(e) {
+    const tw  = tooltipEl.offsetWidth || 200;
+    const th  = tooltipEl.offsetHeight || 36;
+    const pad = 12;
+    let x = e.clientX + pad;
+    let y = e.clientY - th - pad;
+    if (x + tw > window.innerWidth - 8) x = e.clientX - tw - pad;
+    if (y < 8) y = e.clientY + pad;
+    tooltipEl.style.left = x + 'px';
+    tooltipEl.style.top  = y + 'px';
+  }
+
+  document.querySelectorAll('[data-tooltip-key]').forEach(el => {
+    const key = el.dataset.tooltipKey;
+    el.addEventListener('mouseenter', e => showTooltip(key, e));
+    el.addEventListener('mousemove',  e => moveTooltip(e));
+    el.addEventListener('mouseleave', () => tooltipEl.classList.remove('visible'));
+  });
+
+  // ── Element refs ──────────────────────────────────────────
+  const dropZone         = document.getElementById('dropZone');
+  const fileInput        = document.getElementById('fileInput');
+  const canvas           = document.getElementById('outputCanvas');
+  const ctx              = canvas.getContext('2d');
+  const loadingEl        = document.getElementById('loading');
+  const copyBtn          = document.getElementById('copyBtn');
+  const dlBtn            = document.getElementById('dlBtn');
+  const copyOk           = document.getElementById('copyOk');
+  const resetLink        = document.getElementById('resetLink');
+  const strengthSlider   = document.getElementById('strengthSlider');
+  const strengthValueEl  = document.getElementById('strengthValue');
+  const bgToggle         = document.getElementById('bgToggle');
+  const thresholdRow     = document.getElementById('thresholdRow');
+  const colorRow         = document.getElementById('colorRow');
+  const thresholdSlider  = document.getElementById('thresholdSlider');
+  const thresholdValueEl = document.getElementById('thresholdValue');
+  const colorPicker      = document.getElementById('colorPicker');
+
+  // ── State ─────────────────────────────────────────────────
+  let currentImg  = null;
+  let currentName = 'image';
+  let strength    = 1.0;
+  let bgRemove    = false;
+  let threshold   = 128;
+  let lineColor   = '#E67E22';
+
+  // ── Input handlers ────────────────────────────────────────
   dropZone.addEventListener('click', () => fileInput.click());
 
   fileInput.addEventListener('change', e => {
-    const f = e.target.files[0];
-    if (f) loadFile(f);
+    if (e.target.files[0]) loadFile(e.target.files[0]);
   });
 
   dropZone.addEventListener('dragover', e => {
@@ -313,28 +605,46 @@
 
   document.addEventListener('paste', e => {
     for (const item of e.clipboardData.items) {
-      if (item.type.startsWith('image/')) {
-        loadFile(item.getAsFile());
-        break;
-      }
+      if (item.type.startsWith('image/')) { loadFile(item.getAsFile()); break; }
     }
   });
 
   resetLink.addEventListener('click', () => {
-    preview.classList.remove('visible');
-    dropZone.style.display = '';
-    fileInput.value = '';
     currentImg = null;
+    fileInput.value = '';
+    ctx.clearRect(0, 0, 1000, 1000);
+    copyBtn.disabled = true;
+    dlBtn.disabled   = true;
+    resetLink.classList.add('hidden');
+    copyOk.classList.remove('visible');
   });
 
+  // ── Control handlers ──────────────────────────────────────
   strengthSlider.addEventListener('input', () => {
-    currentStrength = parseFloat(strengthSlider.value);
-    strengthValueEl.textContent = currentStrength.toFixed(2);
+    strength = parseFloat(strengthSlider.value);
+    strengthValueEl.textContent = strength.toFixed(2);
     if (currentImg) runFisheye(currentImg);
   });
 
-  // --- File loading ---
+  bgToggle.addEventListener('change', () => {
+    bgRemove = bgToggle.checked;
+    thresholdRow.classList.toggle('visible', bgRemove);
+    colorRow.classList.toggle('visible', bgRemove);
+    if (currentImg) runFisheye(currentImg);
+  });
 
+  thresholdSlider.addEventListener('input', () => {
+    threshold = parseInt(thresholdSlider.value);
+    thresholdValueEl.textContent = threshold;
+    if (currentImg && bgRemove) runFisheye(currentImg);
+  });
+
+  colorPicker.addEventListener('input', () => {
+    lineColor = colorPicker.value;
+    if (currentImg && bgRemove) runFisheye(currentImg);
+  });
+
+  // ── File loading ──────────────────────────────────────────
   function loadFile(file) {
     currentName = file.name.replace(/\.[^.]+$/, '') || 'image';
     const reader = new FileReader();
@@ -346,51 +656,49 @@
     reader.readAsDataURL(file);
   }
 
-  // --- Spherical projection transform ---
+  // ── Helpers ───────────────────────────────────────────────
+  function hexToRgb(hex) {
+    return [
+      parseInt(hex.slice(1, 3), 16),
+      parseInt(hex.slice(3, 5), 16),
+      parseInt(hex.slice(5, 7), 16),
+    ];
+  }
 
+  // ── Fisheye + optional bg removal ────────────────────────
   function runFisheye(img) {
-    dropZone.style.display = 'none';
-    preview.classList.add('visible');
-    loading.classList.add('visible');
+    loadingEl.classList.add('visible');
 
-    // Yield to browser so the UI paints before the heavy loop
     requestAnimationFrame(() => setTimeout(() => {
       const OUT = 1000;
-      const ctx = canvas.getContext('2d');
 
       // Centre-crop source to square
-      const sq  = Math.min(img.width, img.height);
-      const ox  = (img.width  - sq) / 2;
-      const oy  = (img.height - sq) / 2;
+      const sq = Math.min(img.width, img.height);
+      const ox = (img.width  - sq) / 2;
+      const oy = (img.height - sq) / 2;
 
       const tmp = document.createElement('canvas');
       tmp.width = tmp.height = sq;
       tmp.getContext('2d').drawImage(img, ox, oy, sq, sq, 0, 0, sq, sq);
-      const src = tmp.getContext('2d').getImageData(0, 0, sq, sq);
+      const sd = tmp.getContext('2d').getImageData(0, 0, sq, sq).data;
 
-      // Output ImageData
       const out = ctx.createImageData(OUT, OUT);
       const od  = out.data;
-      const sd  = src.data;
+      const [lr, lg, lb] = hexToRgb(lineColor);
 
       for (let py = 0; py < OUT; py++) {
-        const ny = (py / (OUT - 1)) * 2 - 1;   // [-1, 1]
+        const ny = (py / (OUT - 1)) * 2 - 1;
         for (let px = 0; px < OUT; px++) {
-          const nx = (px / (OUT - 1)) * 2 - 1; // [-1, 1]
+          const nx = (px / (OUT - 1)) * 2 - 1;
           const r  = Math.sqrt(nx * nx + ny * ny);
           const oi = (py * OUT + px) * 4;
 
-          // Outside circle → alpha = 0 (transparent, not included in canvas output)
-          if (r > 1) {
-            od[oi] = od[oi+1] = od[oi+2] = od[oi+3] = 0;
-            continue;
-          }
+          if (r > 1) { od[oi] = od[oi+1] = od[oi+2] = od[oi+3] = 0; continue; }
 
-          // Lerp between flat (no distortion) and sphere projection, scaled by strength:
-          //   r_src = r + strength × (asin(r)/(π/2) − r)
-          //   strength=0 → flat, strength=1 → sphere, strength=2 → stronger bulge
+          // Spherical projection (asin-based, strength-controlled)
           const r_sphere = Math.asin(r) / (Math.PI / 2);
-          const r_src = r + currentStrength * (r_sphere - r);
+          const r_src    = r + strength * (r_sphere - r);
+
           let sx, sy;
           if (r < 1e-9) {
             sx = sy = 0.5;
@@ -400,58 +708,62 @@
           }
 
           // Bilinear interpolation
-          const fx = sx * sq;
-          const fy = sy * sq;
-          const x0 = Math.floor(fx);
-          const y0 = Math.floor(fy);
-          const x1 = Math.min(x0 + 1, sq - 1);
-          const y1 = Math.min(y0 + 1, sq - 1);
-          const tx = fx - x0;
-          const ty = fy - y0;
-          const cx0 = Math.max(0, Math.min(sq - 1, x0));
-          const cy0 = Math.max(0, Math.min(sq - 1, y0));
-          const cx1 = Math.max(0, Math.min(sq - 1, x1));
-          const cy1 = Math.max(0, Math.min(sq - 1, y1));
+          const fx  = sx * sq, fy  = sy * sq;
+          const x0  = Math.floor(fx), y0  = Math.floor(fy);
+          const tx  = fx - x0,        ty  = fy - y0;
+          const cx0 = Math.max(0, Math.min(sq-1, x0));
+          const cy0 = Math.max(0, Math.min(sq-1, y0));
+          const cx1 = Math.max(0, Math.min(sq-1, x0+1));
+          const cy1 = Math.max(0, Math.min(sq-1, y0+1));
 
-          const i00 = (cy0 * sq + cx0) * 4;
-          const i10 = (cy0 * sq + cx1) * 4;
-          const i01 = (cy1 * sq + cx0) * 4;
-          const i11 = (cy1 * sq + cx1) * 4;
-          const w00 = (1 - tx) * (1 - ty);
-          const w10 =      tx  * (1 - ty);
-          const w01 = (1 - tx) *      ty;
-          const w11 =      tx  *      ty;
+          const i00 = (cy0*sq + cx0)*4, i10 = (cy0*sq + cx1)*4;
+          const i01 = (cy1*sq + cx0)*4, i11 = (cy1*sq + cx1)*4;
+          const w00 = (1-tx)*(1-ty), w10 = tx*(1-ty);
+          const w01 = (1-tx)*ty,     w11 = tx*ty;
 
-          od[oi]   = sd[i00]   * w00 + sd[i10]   * w10 + sd[i01]   * w01 + sd[i11]   * w11;
-          od[oi+1] = sd[i00+1] * w00 + sd[i10+1] * w10 + sd[i01+1] * w01 + sd[i11+1] * w11;
-          od[oi+2] = sd[i00+2] * w00 + sd[i10+2] * w10 + sd[i01+2] * w01 + sd[i11+2] * w11;
-          od[oi+3] = sd[i00+3] * w00 + sd[i10+3] * w10 + sd[i01+3] * w01 + sd[i11+3] * w11;
+          const pr = sd[i00]*w00 + sd[i10]*w10 + sd[i01]*w01 + sd[i11]*w11;
+          const pg = sd[i00+1]*w00 + sd[i10+1]*w10 + sd[i01+1]*w01 + sd[i11+1]*w11;
+          const pb = sd[i00+2]*w00 + sd[i10+2]*w10 + sd[i01+2]*w01 + sd[i11+2]*w11;
+          const pa = sd[i00+3]*w00 + sd[i10+3]*w10 + sd[i01+3]*w01 + sd[i11+3]*w11;
+
+          if (bgRemove) {
+            // 明度 = (R+G+B)/3
+            const luma = (pr + pg + pb) / 3;
+            if (luma < threshold) {
+              // 線ピクセル → 置換色
+              od[oi] = lr; od[oi+1] = lg; od[oi+2] = lb; od[oi+3] = 255;
+            } else {
+              // 背景 → 透明
+              od[oi] = od[oi+1] = od[oi+2] = od[oi+3] = 0;
+            }
+          } else {
+            od[oi] = pr; od[oi+1] = pg; od[oi+2] = pb; od[oi+3] = pa;
+          }
         }
       }
 
       ctx.putImageData(out, 0, 0);
-      loading.classList.remove('visible');
+      loadingEl.classList.remove('visible');
+      copyBtn.disabled = false;
+      dlBtn.disabled   = false;
+      resetLink.classList.remove('hidden');
     }, 20));
   }
 
-  // --- Copy to clipboard ---
-
+  // ── Copy to clipboard ─────────────────────────────────────
   copyBtn.addEventListener('click', () => {
     canvas.toBlob(async blob => {
       try {
-        await navigator.clipboard.write([
-          new ClipboardItem({ 'image/png': blob })
-        ]);
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
         copyOk.classList.add('visible');
         setTimeout(() => copyOk.classList.remove('visible'), 2200);
       } catch (err) {
-        alert('コピー失敗: ' + err.message);
+        alert((lang === 'jp' ? 'コピー失敗: ' : 'Copy failed: ') + err.message);
       }
     }, 'image/png');
   });
 
-  // --- Download ---
-
+  // ── Download ──────────────────────────────────────────────
   dlBtn.addEventListener('click', () => {
     const a = document.createElement('a');
     a.download = `fisheye_${currentName}.png`;
