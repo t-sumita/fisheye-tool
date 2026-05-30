@@ -228,8 +228,6 @@
       font-size: 0.74rem;
     }
 
-    .size-hint { color: #666; }
-
     .upscale-note { color: #8a7040; }
     .upscale-note.hidden { display: none; }
 
@@ -274,13 +272,6 @@
       font-variant-numeric: tabular-nums;
       min-width: 4em;
       text-align: right;
-    }
-
-    .size-max {
-      font-size: 0.74rem;
-      color: #555;
-      white-space: nowrap;
-      min-width: 7em;
     }
 
     /* Undo button */
@@ -417,6 +408,16 @@
 
     #tooltip.visible { opacity: 1; }
 
+    /* ── Footer ── */
+    .site-footer {
+      position: fixed;
+      left: 8px;
+      bottom: 8px;
+      font-size: 0.72rem;
+      color: #444;
+      pointer-events: none;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 620px) {
       .dual-panel { grid-template-columns: 1fr; }
@@ -430,7 +431,7 @@
 
 <header class="site-header">
   <div>
-    <h1><span id="titleEl"></span><span class="title-ver">v1.3.0</span></h1>
+    <h1><span id="titleEl"></span><span class="title-ver">v1.3.1</span></h1>
     <p class="subtitle" id="subtitleEl"></p>
   </div>
   <div class="lang-toggle">
@@ -477,17 +478,16 @@
       <span class="value-display" id="zoomValue">1.00x</span>
     </div>
 
-    <!-- Output size (with sub-row for hint + upscale note) -->
-    <div class="control-group">
-      <div class="control-row" data-tooltip-key="tooltipSize">
+    <!-- Output size (with sub-row for upscale note) -->
+    <div class="control-group" id="sizeControlGroup">
+      <div class="control-row">
         <label id="labelSize"></label>
         <input type="range" id="sizeSlider" min="0" max="7" step="1" value="5">
         <span class="value-display" id="sizeValue">1024 px</span>
-        <span class="size-max" id="sizeMax"></span>
         <button class="btn-undo" id="undoBtn" data-tooltip-key="tooltipUndo" disabled>↩ Undo</button>
       </div>
       <div class="size-sub">
-        <span class="size-hint" id="sizeHint"></span>
+        <span id="sizeNoteLabel"></span>
         <span class="upscale-note hidden" id="upscaleNote"></span>
       </div>
     </div>
@@ -526,6 +526,7 @@
 </main>
 
 <div id="tooltip"></div>
+<footer class="site-footer">© 2026 Subutomo Dev</footer>
 
 <script>
   // ── Presets ───────────────────────────────────────────────
@@ -553,13 +554,13 @@
       copied:       'クリップボードにコピーしました',
       reset:        '別の画像を使う',
       sizeHints:    ['ファビコン', '小アイコン', 'アプリアイコン', '中アイコン', 'SNSアイコン', '高解像度アイコン', '印刷・大バナー用', '超高解像度'],
-      sizeMaxLabel: n => `最大 ${n}px`,
-      upscaleNote:  '※ 元画像の解像度が上限です。これ以上は拡大補間になります。',
+      sizeNoteLabel: '出力サイズ補足: ',
+      upscaleNote:  '元画像の解像度が上限です。これ以上は拡大補間になります。',
       tooltipDrop:  '画像をドロップ、クリック、またはCtrl+Vで貼り付け',
       tooltipDrag:  '画像をドラッグして位置を調整',
       tooltipCurvature: '球面の膨らみ強度。大きいほど中央が拡大される',
       tooltipZoom:  '元画像の切り取り範囲を拡大・縮小する',
-      tooltipSize:  '出力画像の解像度プリセットを選択する',
+      tooltipSize:  '出力画像の解像度を選択する',
       tooltipUndo:  'ひとつ前のサイズに戻す',
       tooltipBgRemove:  '白背景を透明にし、線の色を変換する',
       tooltipThreshold: '線と背景の判定境界。アンチエイリアス部分の調整に使用',
@@ -584,13 +585,13 @@
       copied:       'Copied to clipboard',
       reset:        'Use another image',
       sizeHints:    ['Favicon', 'Small icon', 'App icon', 'Medium icon', 'SNS icon', 'Hi-res icon', 'Print / Large banner', 'Ultra hi-res'],
-      sizeMaxLabel: n => `Max ${n}px`,
-      upscaleNote:  '※ Limited by source image resolution. Larger sizes will be upscaled.',
+      sizeNoteLabel: 'Output Size Note: ',
+      upscaleNote:  'Limited by source image resolution. Larger sizes will be upscaled.',
       tooltipDrop:  'Drop image here, click, or paste with Ctrl+V',
       tooltipDrag:  'Drag the image to adjust position',
       tooltipCurvature: 'Sphere bulge intensity. Higher values expand the center more',
       tooltipZoom:  'Zoom in or out on the source image',
-      tooltipSize:  'Select the output image resolution',
+      tooltipSize:  'Select output resolution',
       tooltipUndo:  'Undo last size change',
       tooltipBgRemove:  'Make white background transparent and replace line colors',
       tooltipThreshold: 'Boundary between lines and background. Adjust for antialiased edges',
@@ -624,10 +625,10 @@
     document.getElementById('dlBtn').textContent          = s.download;
     document.getElementById('copyOk').textContent         = s.copied;
     document.getElementById('resetLink').textContent      = s.reset;
+    document.getElementById('sizeNoteLabel').textContent  = s.sizeNoteLabel;
 
     // Update dynamic size elements
     updateSizeDisplay();
-    updateSizeMax();
 
     document.getElementById('langJP').classList.toggle('active', l === 'jp');
     document.getElementById('langEN').classList.toggle('active', l === 'en');
@@ -684,9 +685,8 @@
   const zoomValueEl      = document.getElementById('zoomValue');
   const sizeSlider       = document.getElementById('sizeSlider');
   const sizeValueEl      = document.getElementById('sizeValue');
-  const sizeMaxEl        = document.getElementById('sizeMax');
-  const sizeHintEl       = document.getElementById('sizeHint');
   const upscaleNoteEl    = document.getElementById('upscaleNote');
+  const sizeControlGroup = document.getElementById('sizeControlGroup');
   const undoBtn          = document.getElementById('undoBtn');
   const bgToggle         = document.getElementById('bgToggle');
   const thresholdRow     = document.getElementById('thresholdRow');
@@ -713,8 +713,6 @@
   // ── Size display helpers ──────────────────────────────────
   function updateSizeDisplay() {
     sizeValueEl.textContent = outputSize + ' px';
-    const hintIdx = ALL_PRESETS.indexOf(outputSize);
-    sizeHintEl.textContent = hintIdx >= 0 ? S[lang].sizeHints[hintIdx] : '';
     // Upscale note: show when at max valid preset and there's a larger preset available
     const atMax = sizeIndex === validPresets.length - 1;
     const hasLarger = validPresets.length < ALL_PRESETS.length;
@@ -724,14 +722,6 @@
       upscaleNoteEl.classList.remove('hidden');
     } else {
       upscaleNoteEl.classList.add('hidden');
-    }
-  }
-
-  function updateSizeMax() {
-    if (srcMaxSize !== null) {
-      sizeMaxEl.textContent = S[lang].sizeMaxLabel(srcMaxSize);
-    } else {
-      sizeMaxEl.textContent = '';
     }
   }
 
@@ -794,9 +784,23 @@
     copyOk.classList.remove('visible');
     offsetX = offsetY = 0;
     refreshValidPresets();
-    updateSizeMax();
     updateSizeDisplay();
   });
+
+  // ── Size hint tooltip (dynamic per-preset) ────────────────
+  function showTooltipDirect(text, e) {
+    if (!text) return;
+    tooltipEl.textContent = text;
+    moveTooltip(e);
+    tooltipEl.classList.add('visible');
+  }
+
+  sizeControlGroup.addEventListener('mouseenter', e => {
+    const hint = S[lang].sizeHints[ALL_PRESETS.indexOf(outputSize)];
+    showTooltipDirect(hint || S[lang].tooltipSize, e);
+  });
+  sizeControlGroup.addEventListener('mousemove', e => moveTooltip(e));
+  sizeControlGroup.addEventListener('mouseleave', () => tooltipEl.classList.remove('visible'));
 
   // ── Drag position control ─────────────────────────────────
   let isDragging  = false;
@@ -922,7 +926,6 @@
         sizeHistory = [];
         undoBtn.disabled = true;
         refreshValidPresets();
-        updateSizeMax();
         updateSizeDisplay();
         runFisheye(img);
       };
