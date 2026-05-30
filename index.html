@@ -496,6 +496,13 @@
       </div>
     </div>
 
+    <!-- Sharpness -->
+    <div class="control-row" data-tooltip-key="tooltipSharpness">
+      <label id="labelSharpness"></label>
+      <input type="range" id="sharpnessSlider" min="0" max="3.0" step="0.1" value="0">
+      <span class="value-display" id="sharpnessValue">0.0</span>
+    </div>
+
     <!-- Threshold (bg-opt) -->
     <div class="control-row bg-opt" id="thresholdRow" data-tooltip-key="tooltipThreshold">
       <label id="labelThreshold"></label>
@@ -547,7 +554,7 @@
 
 <script>
   // ── Version ───────────────────────────────────────────────
-  const APP_VERSION = 'v1.3.4';
+  const APP_VERSION = 'v1.3.5';
   document.getElementById('version-display').textContent = APP_VERSION;
 
   // ── Presets ───────────────────────────────────────────────
@@ -577,12 +584,14 @@
       sizeHints:    ['ファビコン', '小アイコン', 'アプリアイコン', '中アイコン', 'SNSアイコン', '高解像度アイコン', '印刷・大バナー用', '超高解像度'],
       sizeNoteLabel: '出力サイズ補足: ',
       upscaleNote:  '元画像の解像度が上限です。これ以上は拡大補間になります。',
+      sharpness:    'シャープネス',
       tooltipDrop:  '画像をドロップ、クリック、またはCtrl+Vで貼り付け',
       tooltipDrag:  '画像をドラッグして位置を調整',
       tooltipCurvature: '球面の膨らみ強度。大きいほど中央が拡大される',
       tooltipZoom:  '元画像の切り取り範囲を拡大・縮小する',
       tooltipSize:  '出力画像の解像度を選択する',
       tooltipUndo:  'ひとつ前のサイズに戻す',
+      tooltipSharpness: 'ダウンサンプリング時のぼけを補正する。小さいサイズほど強めに',
       tooltipBgRemove:  '白背景を透明にし、線の色を変換する',
       tooltipThreshold: '線と背景の判定境界。アンチエイリアス部分の調整に使用',
       tooltipColor: '線の置換色を指定',
@@ -608,12 +617,14 @@
       sizeHints:    ['Favicon', 'Small icon', 'App icon', 'Medium icon', 'SNS icon', 'Hi-res icon', 'Print / Large banner', 'Ultra hi-res'],
       sizeNoteLabel: 'Output Size Note: ',
       upscaleNote:  'Limited by source image resolution. Larger sizes will be upscaled.',
+      sharpness:    'Sharpness',
       tooltipDrop:  'Drop image here, click, or paste with Ctrl+V',
       tooltipDrag:  'Drag the image to adjust position',
       tooltipCurvature: 'Sphere bulge intensity. Higher values expand the center more',
       tooltipZoom:  'Zoom in or out on the source image',
       tooltipSize:  'Select output resolution',
       tooltipUndo:  'Undo last size change',
+      tooltipSharpness: 'Compensate for blur when downsampling. Use stronger values for smaller sizes',
       tooltipBgRemove:  'Make white background transparent and replace line colors',
       tooltipThreshold: 'Boundary between lines and background. Adjust for antialiased edges',
       tooltipColor: 'Specify the replacement color for lines',
@@ -639,6 +650,7 @@
     document.getElementById('labelCurvature').textContent = s.curvature;
     document.getElementById('labelZoom').textContent      = s.zoom;
     document.getElementById('labelSize').textContent      = s.outputSize;
+    document.getElementById('labelSharpness').textContent = s.sharpness;
     document.getElementById('labelBgRemove').textContent  = s.bgRemove;
     document.getElementById('labelThreshold').textContent = s.threshold;
     document.getElementById('labelLineColor').textContent = s.lineColor;
@@ -709,6 +721,8 @@
   const upscaleNoteEl    = document.getElementById('upscaleNote');
   const sizeControlGroup = document.getElementById('sizeControlGroup');
   const undoBtn          = document.getElementById('undoBtn');
+  const sharpnessSlider  = document.getElementById('sharpnessSlider');
+  const sharpnessValueEl = document.getElementById('sharpnessValue');
   const bgToggle         = document.getElementById('bgToggle');
   const thresholdRow     = document.getElementById('thresholdRow');
   const colorRow         = document.getElementById('colorRow');
@@ -724,6 +738,7 @@
   let zoom        = 1.0;
   let offsetX     = 0.0;
   let offsetY     = 0.0;
+  let sharpness   = 0.0;
   let bgRemove    = false;
   let threshold   = 128;
   let lineColor   = '#E67E22';
@@ -916,6 +931,12 @@
     if (currentImg) runFisheye(currentImg);
   });
 
+  sharpnessSlider.addEventListener('input', () => {
+    sharpness = parseFloat(sharpnessSlider.value);
+    sharpnessValueEl.textContent = sharpness.toFixed(1);
+    if (currentImg) runFisheye(currentImg);
+  });
+
   bgToggle.addEventListener('change', () => {
     bgRemove = bgToggle.checked;
     thresholdRow.classList.toggle('visible', bgRemove);
@@ -962,6 +983,37 @@
       parseInt(hex.slice(3, 5), 16),
       parseInt(hex.slice(5, 7), 16),
     ];
+  }
+
+  // ── Unsharp Mask ──────────────────────────────────────────
+  function applyUnsharpMask(pixels, size, strength) {
+    const blurred = new Uint8ClampedArray(pixels.length);
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const idx = (y * size + x) * 4;
+        if (pixels[idx + 3] === 0) continue;
+        let r = 0, g = 0, b = 0, n = 0;
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+              const ni = (ny * size + nx) * 4;
+              r += pixels[ni]; g += pixels[ni+1]; b += pixels[ni+2]; n++;
+            }
+          }
+        }
+        blurred[idx]   = r / n;
+        blurred[idx+1] = g / n;
+        blurred[idx+2] = b / n;
+        blurred[idx+3] = pixels[idx+3];
+      }
+    }
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i+3] === 0) continue;
+      pixels[i]   = Math.max(0, Math.min(255, pixels[i]   + (pixels[i]   - blurred[i])   * strength));
+      pixels[i+1] = Math.max(0, Math.min(255, pixels[i+1] + (pixels[i+1] - blurred[i+1]) * strength));
+      pixels[i+2] = Math.max(0, Math.min(255, pixels[i+2] + (pixels[i+2] - blurred[i+2]) * strength));
+    }
   }
 
   // ── Fisheye transform ─────────────────────────────────────
@@ -1042,6 +1094,7 @@
         }
       }
 
+      if (sharpness > 0) applyUnsharpMask(od, OUT, sharpness);
       ctx.putImageData(out, 0, 0);
       loadingEl.classList.remove('visible');
       copyBtn.disabled = false;
