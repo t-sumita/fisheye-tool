@@ -21,7 +21,7 @@
     /* ── Header ── */
     .site-header {
       width: 100%;
-      max-width: 860px;
+      max-width: 900px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
@@ -39,6 +39,18 @@
       font-size: 0.85rem;
       color: #666;
       margin-top: 4px;
+    }
+
+    .version-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      color: #555;
+      background: #252525;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
     }
 
     .lang-toggle {
@@ -64,7 +76,7 @@
     /* ── Main wrapper ── */
     .main-wrap {
       width: 100%;
-      max-width: 860px;
+      max-width: 900px;
       display: flex;
       flex-direction: column;
       gap: 22px;
@@ -73,15 +85,15 @@
     /* ── Dual panel ── */
     .dual-panel {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr auto;
       gap: 20px;
-      align-items: center;
+      align-items: start;
     }
 
     /* ── Drop Zone ── */
     #dropZone {
       width: 100%;
-      height: 300px;
+      height: 340px;
       border: 2px dashed #3a3a3a;
       border-radius: 16px;
       display: flex;
@@ -120,11 +132,18 @@
 
     #fileInput { display: none; }
 
-    /* ── Preview panel ── */
-    .preview-panel {
+    /* ── Preview area (canvas + X/Y sliders) ── */
+    .preview-area {
       display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .preview-and-y {
+      display: flex;
+      gap: 10px;
       align-items: center;
-      justify-content: center;
     }
 
     .canvas-wrap {
@@ -173,34 +192,36 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Controls ── */
-    .controls {
-      background: #1e1e1e;
-      border-radius: 12px;
-      padding: 20px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .control-row {
+    /* Y slider (vertical, right of preview) */
+    .y-slider-wrap {
       display: flex;
       align-items: center;
-      gap: 14px;
+      justify-content: center;
+      height: 300px;
     }
 
-    .control-row > label:first-child {
-      font-size: 0.85rem;
-      color: #aaa;
-      white-space: nowrap;
-      min-width: 10em;
+    input.vert-slider {
+      writing-mode: vertical-lr;
+      height: 280px;
+      width: 20px;
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      cursor: pointer;
+      outline: none;
+      background: #3a3a3a;
     }
 
-    .bg-opt { display: none; }
-    .bg-opt.visible { display: flex; }
+    /* X slider (horizontal, below preview) */
+    .x-slider-wrap {
+      width: 300px;
+    }
 
+    .x-slider-wrap input[type="range"] {
+      width: 100%;
+    }
+
+    /* ── Common slider styles ── */
     input[type="range"] {
-      flex: 1;
       height: 4px;
       -webkit-appearance: none;
       appearance: none;
@@ -231,11 +252,45 @@
       cursor: pointer;
     }
 
+    /* Vertical slider thumb override */
+    input.vert-slider::-webkit-slider-thumb {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      background: #1e1e1e;
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .control-row > label:first-child {
+      font-size: 0.85rem;
+      color: #aaa;
+      white-space: nowrap;
+      min-width: 10em;
+    }
+
+    .control-row input[type="range"] { flex: 1; }
+
+    .bg-opt { display: none; }
+    .bg-opt.visible { display: flex; }
+
     .value-display {
       font-size: 0.85rem;
       color: #ccc;
       font-variant-numeric: tabular-nums;
-      min-width: 3em;
+      min-width: 4em;
       text-align: right;
     }
 
@@ -276,7 +331,6 @@
     }
 
     .toggle-wrap input:checked ~ .toggle-track { background: #2a4a8a; }
-
     .toggle-wrap input:checked ~ .toggle-thumb {
       transform: translateX(20px);
       background: #5b8fff;
@@ -358,10 +412,13 @@
     #tooltip.visible { opacity: 1; }
 
     /* ── Responsive ── */
-    @media (max-width: 620px) {
+    @media (max-width: 680px) {
       .dual-panel { grid-template-columns: 1fr; }
       .canvas-wrap { width: 260px; height: 260px; }
       #outputCanvas { width: 260px; height: 260px; }
+      .x-slider-wrap { width: 260px; }
+      .y-slider-wrap { height: 260px; }
+      input.vert-slider { height: 240px; }
       #dropZone { height: 200px; }
     }
   </style>
@@ -372,6 +429,7 @@
   <div>
     <h1 id="titleEl"></h1>
     <p class="subtitle" id="subtitleEl"></p>
+    <span class="version-badge">v1.1.0</span>
   </div>
   <div class="lang-toggle">
     <span id="langJP" class="lang-btn">JP</span>
@@ -381,8 +439,9 @@
 </header>
 
 <main class="main-wrap">
-  <!-- Dual panel: drop zone + preview -->
+  <!-- Dual panel: drop zone + preview with X/Y sliders -->
   <div class="dual-panel">
+    <!-- Input drop zone -->
     <div id="dropZone" data-tooltip-key="tooltipDrop">
       <div class="dz-icon">&#128248;</div>
       <p class="dz-main" id="dzMain"></p>
@@ -390,27 +449,47 @@
       <input type="file" id="fileInput" accept=".jpg,.jpeg,.png">
     </div>
 
-    <div class="preview-panel">
-      <div class="canvas-wrap">
-        <canvas id="outputCanvas" width="1000" height="1000"></canvas>
-        <div class="loading" id="loading">
-          <div class="spinner"></div>
-          <span id="processingText"></span>
+    <!-- Preview area: canvas + Y slider (right) + X slider (below) -->
+    <div class="preview-area">
+      <div class="preview-and-y">
+        <div class="canvas-wrap">
+          <canvas id="outputCanvas" width="1000" height="1000"></canvas>
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span id="processingText"></span>
+          </div>
         </div>
+        <!-- Y slider: vertical, right of canvas -->
+        <div class="y-slider-wrap" data-tooltip-key="tooltipOffset">
+          <input type="range" id="ySlider" class="vert-slider"
+                 min="-0.5" max="0.5" step="0.01" value="0">
+        </div>
+      </div>
+      <!-- X slider: horizontal, below canvas -->
+      <div class="x-slider-wrap" data-tooltip-key="tooltipOffset">
+        <input type="range" id="xSlider"
+               min="-0.5" max="0.5" step="0.01" value="0">
       </div>
     </div>
   </div>
 
   <!-- Controls -->
   <div class="controls">
-    <!-- Curvature slider -->
+    <!-- Curvature -->
     <div class="control-row" data-tooltip-key="tooltipCurvature">
       <label id="labelCurvature"></label>
       <input type="range" id="strengthSlider" min="0" max="2" step="0.01" value="1">
       <span class="value-display" id="strengthValue">1.00</span>
     </div>
 
-    <!-- Threshold slider (bg-opt) -->
+    <!-- Zoom -->
+    <div class="control-row" data-tooltip-key="tooltipZoom">
+      <label id="labelZoom"></label>
+      <input type="range" id="zoomSlider" min="0.5" max="3.0" step="0.01" value="1.0">
+      <span class="value-display" id="zoomValue">1.00x</span>
+    </div>
+
+    <!-- Threshold (bg-opt) -->
     <div class="control-row bg-opt" id="thresholdRow" data-tooltip-key="tooltipThreshold">
       <label id="labelThreshold"></label>
       <input type="range" id="thresholdSlider" min="0" max="255" step="1" value="128">
@@ -439,7 +518,7 @@
     <button class="btn btn-copy"     id="copyBtn" data-tooltip-key="tooltipCopy"     disabled></button>
     <button class="btn btn-download" id="dlBtn"   data-tooltip-key="tooltipDl"       disabled></button>
   </div>
-  <div class="copy-ok hidden" id="copyOk"></div>
+  <div class="copy-ok" id="copyOk"></div>
   <div class="reset-link hidden" id="resetLink"></div>
 </main>
 
@@ -455,6 +534,7 @@
       dropHint:         'JPG・PNG 対応 &nbsp;/&nbsp; Ctrl+V で貼り付けも可',
       processing:       '変換中…',
       curvature:        '湾曲率',
+      zoom:             '拡大率',
       bgRemove:         '背景透明化',
       threshold:        'しきい値',
       lineColor:        '線の色',
@@ -464,6 +544,8 @@
       reset:            '別の画像を使う',
       tooltipDrop:      '画像をドロップ、クリック、またはCtrl+Vで貼り付け',
       tooltipCurvature: '球面の膨らみ強度。大きいほど中央が拡大される',
+      tooltipZoom:      '元画像の切り取り範囲を拡大・縮小する',
+      tooltipOffset:    'レンズの中心位置を調整する',
       tooltipBgRemove:  '白背景を透明にし、線の色を変換する',
       tooltipThreshold: '線と背景の判定境界。アンチエイリアス部分の調整に使用',
       tooltipColor:     '線の置換色を指定',
@@ -477,6 +559,7 @@
       dropHint:         'JPG・PNG supported &nbsp;/&nbsp; Paste with Ctrl+V',
       processing:       'Processing…',
       curvature:        'Curvature',
+      zoom:             'Zoom',
       bgRemove:         'Remove Background',
       threshold:        'Threshold',
       lineColor:        'Line Color',
@@ -486,6 +569,8 @@
       reset:            'Use another image',
       tooltipDrop:      'Drop image here, click, or paste with Ctrl+V',
       tooltipCurvature: 'Sphere bulge intensity. Higher values expand the center more',
+      tooltipZoom:      'Zoom in or out on the source image',
+      tooltipOffset:    'Adjust the center position of the lens',
       tooltipBgRemove:  'Make white background transparent and replace line colors',
       tooltipThreshold: 'Boundary between lines and background. Adjust for antialiased edges',
       tooltipColor:     'Specify the replacement color for lines',
@@ -509,6 +594,7 @@
     document.getElementById('dzHint').innerHTML           = s.dropHint;
     document.getElementById('processingText').textContent = s.processing;
     document.getElementById('labelCurvature').textContent = s.curvature;
+    document.getElementById('labelZoom').textContent      = s.zoom;
     document.getElementById('labelBgRemove').textContent  = s.bgRemove;
     document.getElementById('labelThreshold').textContent = s.threshold;
     document.getElementById('labelLineColor').textContent = s.lineColor;
@@ -567,6 +653,10 @@
   const resetLink        = document.getElementById('resetLink');
   const strengthSlider   = document.getElementById('strengthSlider');
   const strengthValueEl  = document.getElementById('strengthValue');
+  const zoomSlider       = document.getElementById('zoomSlider');
+  const zoomValueEl      = document.getElementById('zoomValue');
+  const xSlider          = document.getElementById('xSlider');
+  const ySlider          = document.getElementById('ySlider');
   const bgToggle         = document.getElementById('bgToggle');
   const thresholdRow     = document.getElementById('thresholdRow');
   const colorRow         = document.getElementById('colorRow');
@@ -578,6 +668,9 @@
   let currentImg  = null;
   let currentName = 'image';
   let strength    = 1.0;
+  let zoom        = 1.0;
+  let offsetX     = 0.0;
+  let offsetY     = 0.0;
   let bgRemove    = false;
   let threshold   = 128;
   let lineColor   = '#E67E22';
@@ -626,6 +719,22 @@
     if (currentImg) runFisheye(currentImg);
   });
 
+  zoomSlider.addEventListener('input', () => {
+    zoom = parseFloat(zoomSlider.value);
+    zoomValueEl.textContent = zoom.toFixed(2) + 'x';
+    if (currentImg) runFisheye(currentImg);
+  });
+
+  xSlider.addEventListener('input', () => {
+    offsetX = parseFloat(xSlider.value);
+    if (currentImg) runFisheye(currentImg);
+  });
+
+  ySlider.addEventListener('input', () => {
+    offsetY = parseFloat(ySlider.value);
+    if (currentImg) runFisheye(currentImg);
+  });
+
   bgToggle.addEventListener('change', () => {
     bgRemove = bgToggle.checked;
     thresholdRow.classList.toggle('visible', bgRemove);
@@ -665,7 +774,7 @@
     ];
   }
 
-  // ── Fisheye + optional bg removal ────────────────────────
+  // ── Fisheye + zoom + offset + optional bg removal ─────────
   function runFisheye(img) {
     loadingEl.classList.add('visible');
 
@@ -699,12 +808,14 @@
           const r_sphere = Math.asin(r) / (Math.PI / 2);
           const r_src    = r + strength * (r_sphere - r);
 
+          // Apply zoom and offset to sampling coordinates
           let sx, sy;
           if (r < 1e-9) {
-            sx = sy = 0.5;
+            sx = 0.5 + offsetX;
+            sy = 0.5 + offsetY;
           } else {
-            sx = (nx / r * r_src + 1) * 0.5;
-            sy = (ny / r * r_src + 1) * 0.5;
+            sx = (nx / r * r_src / zoom + 1) / 2 + offsetX;
+            sy = (ny / r * r_src / zoom + 1) / 2 + offsetY;
           }
 
           // Bilinear interpolation
@@ -727,13 +838,10 @@
           const pa = sd[i00+3]*w00 + sd[i10+3]*w10 + sd[i01+3]*w01 + sd[i11+3]*w11;
 
           if (bgRemove) {
-            // 明度 = (R+G+B)/3
             const luma = (pr + pg + pb) / 3;
             if (luma < threshold) {
-              // 線ピクセル → 置換色
               od[oi] = lr; od[oi+1] = lg; od[oi+2] = lb; od[oi+3] = 255;
             } else {
-              // 背景 → 透明
               od[oi] = od[oi+1] = od[oi+2] = od[oi+3] = 0;
             }
           } else {
