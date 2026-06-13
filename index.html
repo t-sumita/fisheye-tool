@@ -415,14 +415,18 @@
 
     #tooltip.visible { opacity: 1; }
 
-    /* ── Footer ── */
-    .site-footer {
-      position: fixed;
-      left: 8px;
-      bottom: 8px;
+    /* ── Privacy note(旧固定フッターは Subutomo バッジに置換) ── */
+    .privacy-note {
+      margin: 28px 12px 60px;   /* 下端は左下バッジと重ならない余白 */
       font-size: 0.72rem;
-      color: #444;
-      pointer-events: none;
+      color: #555;
+      line-height: 1.7;
+      max-width: 640px;
+    }
+    .privacy-note .pn-title {
+      color: #666;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
     }
 
     /* ── Responsive ── */
@@ -550,11 +554,16 @@
 </main>
 
 <div id="tooltip"></div>
-<footer class="site-footer">© 2026 Subutomo Dev</footer>
+
+<!-- プライバシー説明(言語切替に追従)。© 表記は左下の Subutomo バッジが担う -->
+<footer class="privacy-note">
+  <div class="pn-title" id="privacyTitleEl"></div>
+  <div id="privacyNoteEl"></div>
+</footer>
 
 <script>
   // ── Version ───────────────────────────────────────────────
-  const APP_VERSION = 'v1.3.6';
+  const APP_VERSION = 'v1.4.0';
   document.getElementById('version-display').textContent = APP_VERSION;
 
   // ── Presets ───────────────────────────────────────────────
@@ -597,6 +606,8 @@
       tooltipColor: '線の置換色を指定',
       tooltipCopy:  '変換結果をクリップボードにPNG形式でコピー',
       tooltipDl:    '変換結果をPNGファイルで保存',
+      privacyTitle: 'プライバシー',
+      privacyNote:  'このサイトは Cloudflare Web Analytics により、アクセス数を匿名で集計しています。クッキーは使用せず、個人を特定する情報も収集しません。',
     },
     en: {
       title:        'Fisheye Tool',
@@ -630,6 +641,8 @@
       tooltipColor: 'Specify the replacement color for lines',
       tooltipCopy:  'Copy the result to clipboard as PNG',
       tooltipDl:    'Save the result as a PNG file',
+      privacyTitle: 'Privacy',
+      privacyNote:  'This site uses Cloudflare Web Analytics to count visits anonymously. No cookies are used, and no personal information is collected.',
     }
   };
 
@@ -659,6 +672,8 @@
     document.getElementById('copyOk').textContent         = s.copied;
     document.getElementById('resetLink').textContent      = s.reset;
     document.getElementById('sizeNoteLabel').textContent  = s.sizeNoteLabel;
+    document.getElementById('privacyTitleEl').textContent = s.privacyTitle;
+    document.getElementById('privacyNoteEl').textContent  = s.privacyNote;
 
     // Update dynamic size elements
     updateSizeDisplay();
@@ -1124,5 +1139,22 @@
     a.click();
   });
 </script>
+
+<!-- Subutomo サイト選択バッジ(台帳はローカル参照。正本は subutomo-template) -->
+<script>
+  window.SUBUTOMO_BADGE_CONFIG = {
+    currentSiteId: 'fisheye-tool',
+    sitesJsonPath: 'config/subutomo-sites.json',
+    logoPath: './common/assets/logo.png',
+    theme: 'dark-bg',
+    privacy: { localStorage: false, analytics: true },
+    onSecretAction: null
+  };
+</script>
+<script src="./assets/subutomo-badge.js"></script>
+
+<!-- Cloudflare Web Analytics(匿名・Cookieレス。トークンは公開前提の識別子) -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+  data-cf-beacon='{"token": "9ecc3d6307634ff8a0d28f2191bf4a4d"}'></script>
 </body>
 </html>
