@@ -588,15 +588,16 @@
     <a id="footerFeedbackLink" href="https://docs.google.com/forms/d/e/1FAIpQLSe8-WYLGkSj7hkO0aQH9Cy6rNDd4a12sSLfPtlnxTTJUEJl6w/viewform" target="_blank" rel="noopener noreferrer"></a>
   </nav>
   <div class="footer-copyright">
-    &copy; 2026 <a href="https://www.subutomo.dev/" target="_blank" rel="noopener noreferrer">Subutomo Dev.</a> (v1.0.5)
+    &copy; 2026 <a href="https://www.subutomo.dev/" target="_blank" rel="noopener noreferrer">Subutomo Dev.</a> <span id="footer-copy-ver"></span>
   </div>
 </footer>
 
 <script>
   // ── Version ───────────────────────────────────────────────
-  const APP_VERSION = 'v1.5.0';
+  const APP_VERSION = 'v1.5.1';
   const VERSION_LABEL = 'ver. ' + APP_VERSION.replace(/^v/i, '');
   document.getElementById('version-display').textContent = VERSION_LABEL;
+  document.getElementById('footer-copy-ver').textContent = '(v' + APP_VERSION.replace(/^v/i, '') + ')';
 
   // ── Presets ───────────────────────────────────────────────
   const ALL_PRESETS = [32, 64, 128, 256, 512, 1024, 2048, 4096];
