@@ -431,26 +431,24 @@
       letter-spacing: 1px;
       margin-bottom: 2px;
     }
+    /* 画面右下のリンク群(左下の Subutomo バッジと同じ高さ) */
     .footer-links {
-      margin-top: 14px;
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      z-index: 9999;
       display: flex;
+      align-items: center;
       flex-wrap: wrap;
       gap: 14px;
+      font-size: 11px;
+      letter-spacing: 0.5px;
     }
     .footer-links a {
       color: #5b8fff;
       text-decoration: none;
     }
     .footer-links a:hover { text-decoration: underline; }
-    .footer-copyright {
-      margin-top: 10px;
-      color: #555;
-    }
-    .footer-copyright a {
-      color: #777;
-      text-decoration: none;
-    }
-    .footer-copyright a:hover { text-decoration: underline; }
 
     /* ── Responsive ── */
     @media (max-width: 620px) {
@@ -582,22 +580,20 @@
 <footer class="privacy-note">
   <div class="pn-title" id="privacyTitleEl"></div>
   <div id="privacyNoteEl"></div>
-  <nav class="footer-links">
-    <a id="footerTipLink" href="https://ko-fi.com/subutomo" target="_blank" rel="noopener noreferrer"></a>
-    <a id="footerSponsorLink" href="https://github.com/sponsors/t-sumita" target="_blank" rel="noopener noreferrer">Sponsors</a>
-    <a id="footerFeedbackLink" href="https://docs.google.com/forms/d/e/1FAIpQLSf_thpSe4TfQ_EloElTBsCiMKgypYTKLCs0dSTmaF_FXZSvIg/viewform?usp=pp_url&amp;entry.2036331541=Fisheye+Tool+(fisheye)" target="_blank" rel="noopener noreferrer"></a>
-  </nav>
-  <div class="footer-copyright">
-    &copy; 2026 <a href="https://www.subutomo.dev/" target="_blank" rel="noopener noreferrer">Subutomo Dev.</a> <span id="footer-copy-ver"></span>
-  </div>
 </footer>
+
+<!-- 画面右下のリンク群(左下の Subutomo バッジと同じ高さ) -->
+<nav class="footer-links">
+  <a id="footerTipLink" href="https://ko-fi.com/subutomo" target="_blank" rel="noopener noreferrer"></a>
+  <a id="footerSponsorLink" href="https://github.com/sponsors/t-sumita" target="_blank" rel="noopener noreferrer">Sponsors</a>
+  <a id="footerFeedbackLink" href="https://docs.google.com/forms/d/e/1FAIpQLSf_thpSe4TfQ_EloElTBsCiMKgypYTKLCs0dSTmaF_FXZSvIg/viewform?usp=pp_url&amp;entry.2036331541=Fisheye+Tool+(fisheye)" target="_blank" rel="noopener noreferrer"></a>
+</nav>
 
 <script>
   // ── Version ───────────────────────────────────────────────
-  const APP_VERSION = 'v1.5.2';
+  const APP_VERSION = 'v1.5.3';
   const VERSION_LABEL = 'ver. ' + APP_VERSION.replace(/^v/i, '');
   document.getElementById('version-display').textContent = VERSION_LABEL;
-  document.getElementById('footer-copy-ver').textContent = '(v' + APP_VERSION.replace(/^v/i, '') + ')';
 
   // ── Presets ───────────────────────────────────────────────
   const ALL_PRESETS = [32, 64, 128, 256, 512, 1024, 2048, 4096];
@@ -1194,6 +1190,14 @@
   };
 </script>
 <script src="./assets/subutomo-badge.js"></script>
+<script>
+  // 左下 Subutomo バッジのコピーライト右にアプリのバージョンを追記(共有バッジは非改変)
+  (function () {
+    var ver = (typeof APP_VERSION === 'string') ? APP_VERSION.replace(/^v/i, '') : '';
+    var span = document.querySelector('.su-badge span');
+    if (span && ver) span.textContent += ' (v' + ver + ')';
+  })();
+</script>
 
 <!-- Cloudflare Web Analytics(匿名・Cookieレス。トークンは公開前提の識別子) -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
