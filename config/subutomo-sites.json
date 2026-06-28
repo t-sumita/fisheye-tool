@@ -12,7 +12,7 @@
     "id": "fisheye-tool",
     "title": "fisheye-tool",
     "description": "Fisheye lens image preview tool",
-    "url": "https://t-sumita.github.io/fisheye-tool/",
+    "url": "https://fisheye.subutomo.dev/",
     "thumb": "https://club.subutomo.dev/contents/fisheye-tool/thumb.png",
     "size": 4,
     "status": "visible"
@@ -30,7 +30,7 @@
     "id": "strata-site",
     "title": "strata-site",
     "description": "A visual journey through space, navigated with arrow keys or swipes",
-    "url": "https://t-sumita.github.io/strata-site/",
+    "url": "https://strata.subutomo.dev/",
     "thumb": "https://club.subutomo.dev/contents/strata-site/thumb.png",
     "size": 4,
     "status": "visible"
@@ -39,7 +39,7 @@
     "id": "subuta-site",
     "title": "subuta-site",
     "description": "A site where quirky, adorable Subuta characters gather",
-    "url": "https://t-sumita.github.io/subuta-site/",
+    "url": "https://pig.subutomo.dev/",
     "thumb": "https://club.subutomo.dev/contents/subuta-site/thumb.png",
     "size": 4,
     "status": "visible"
