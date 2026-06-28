@@ -431,6 +431,26 @@
       letter-spacing: 1px;
       margin-bottom: 2px;
     }
+    .footer-links {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .footer-links a {
+      color: #5b8fff;
+      text-decoration: none;
+    }
+    .footer-links a:hover { text-decoration: underline; }
+    .footer-copyright {
+      margin-top: 10px;
+      color: #555;
+    }
+    .footer-copyright a {
+      color: #777;
+      text-decoration: none;
+    }
+    .footer-copyright a:hover { text-decoration: underline; }
 
     /* ── Responsive ── */
     @media (max-width: 620px) {
@@ -562,12 +582,21 @@
 <footer class="privacy-note">
   <div class="pn-title" id="privacyTitleEl"></div>
   <div id="privacyNoteEl"></div>
+  <nav class="footer-links">
+    <a id="footerTipLink" href="https://ko-fi.com/subutomo" target="_blank" rel="noopener noreferrer"></a>
+    <a id="footerSponsorLink" href="https://github.com/sponsors/t-sumita" target="_blank" rel="noopener noreferrer">Sponsors</a>
+    <a id="footerFeedbackLink" href="https://docs.google.com/forms/d/e/1FAIpQLSe8-WYLGkSj7hkO0aQH9Cy6rNDd4a12sSLfPtlnxTTJUEJl6w/viewform" target="_blank" rel="noopener noreferrer"></a>
+  </nav>
+  <div class="footer-copyright">
+    &copy; 2026 <a href="https://www.subutomo.dev/" target="_blank" rel="noopener noreferrer">Subutomo Dev.</a> (v1.0.5)
+  </div>
 </footer>
 
 <script>
   // ── Version ───────────────────────────────────────────────
-  const APP_VERSION = 'v1.4.2';
-  document.getElementById('version-display').textContent = APP_VERSION;
+  const APP_VERSION = 'v1.5.0';
+  const VERSION_LABEL = 'ver. ' + APP_VERSION.replace(/^v/i, '');
+  document.getElementById('version-display').textContent = VERSION_LABEL;
 
   // ── Presets ───────────────────────────────────────────────
   const ALL_PRESETS = [32, 64, 128, 256, 512, 1024, 2048, 4096];
@@ -611,6 +640,9 @@
       tooltipDl:    '変換結果をPNGファイルで保存',
       privacyTitle: 'プライバシー',
       privacyNote:  'このサイトは Cloudflare Web Analytics により、アクセス数を匿名で集計しています。クッキーは使用せず、個人を特定する情報も収集しません。',
+      footerTip:      'チップ',
+      footerSponsor:  'Sponsors',
+      footerFeedback: 'ご意見・ご要望',
     },
     en: {
       title:        'Fisheye Tool',
@@ -646,6 +678,9 @@
       tooltipDl:    'Save the result as a PNG file',
       privacyTitle: 'Privacy',
       privacyNote:  'This site uses Cloudflare Web Analytics to count visits anonymously. No cookies are used, and no personal information is collected.',
+      footerTip:      'Tip',
+      footerSponsor:  'Sponsors',
+      footerFeedback: 'Feedback',
     }
   };
 
@@ -677,6 +712,9 @@
     document.getElementById('sizeNoteLabel').textContent  = s.sizeNoteLabel;
     document.getElementById('privacyTitleEl').textContent = s.privacyTitle;
     document.getElementById('privacyNoteEl').textContent  = s.privacyNote;
+    document.getElementById('footerTipLink').textContent      = s.footerTip;
+    document.getElementById('footerSponsorLink').textContent  = s.footerSponsor;
+    document.getElementById('footerFeedbackLink').textContent = s.footerFeedback;
 
     // Update dynamic size elements
     updateSizeDisplay();
